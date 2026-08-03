@@ -1,0 +1,1 @@
+import './migrate.ts';import {spawn} from 'node:child_process';const port=process.env.PORT||'80';const child=spawn(process.execPath,['node_modules/next/dist/bin/next','start','-H','0.0.0.0','-p',port],{stdio:'inherit',env:process.env});for(const signal of ['SIGTERM','SIGINT'] as const)process.on(signal,()=>child.kill(signal));child.on('exit',code=>process.exit(code??0));

@@ -1,0 +1,1 @@
+import {NextResponse} from 'next/server';export async function POST(req:Request){const origin=req.headers.get('origin')||process.env.APP_URL||`http://${req.headers.get('host')||'localhost'}`;const res=NextResponse.redirect(new URL('/login',origin),303);res.cookies.delete('gaya_session');return res}

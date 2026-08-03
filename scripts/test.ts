@@ -1,0 +1,1 @@
+import assert from 'node:assert/strict';import {statusLabel} from '../src/lib/utils.ts';assert.equal(statusLabel('IN_PROGRESS'),'Em andamento');assert.equal(statusLabel('CUSTOM'),'CUSTOM');console.log('2 testes aprovados.');

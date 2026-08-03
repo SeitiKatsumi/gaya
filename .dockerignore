@@ -1,0 +1,9 @@
+.git
+.next
+node_modules
+data
+storage
+backups
+.env
+npm-debug.log*
+pnpm-debug.log*

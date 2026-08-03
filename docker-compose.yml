@@ -1,0 +1,17 @@
+services:
+  gaya:
+    build: .
+    ports: ["80:80"]
+    env_file: [.env]
+    environment:
+      DATABASE_URL: file:/app/data/gaya.sqlite
+      STORAGE_PATH: /app/storage
+    volumes:
+      - gaya-data:/app/data
+      - gaya-storage:/app/storage
+      - gaya-backups:/app/backups
+    restart: unless-stopped
+volumes:
+  gaya-data:
+  gaya-storage:
+  gaya-backups:
