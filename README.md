@@ -79,9 +79,9 @@ As permissões são verificadas no servidor, inclusive para impedir que Inspetor
 
 ## Fluxos operacionais
 
-- Supervisor: cadastra usuários, projetos e modelos; programa inspeções; revisa, solicita ajustes, aprova e administra planos de ação.
+- Supervisor: cadastra usuários e unidades da própria empresa, administra projetos e modelos; programa inspeções; revisa, solicita ajustes, aprova e administra planos de ação.
 - Inspetor: acessa apenas inspeções atribuídas, responde itens, envia evidências e encaminha o trabalho concluído para revisão.
-- Super Admin: possui visão global e administra dados entre empresas.
+- Super Admin: possui visão global, cadastra empresas com unidade inicial e administra dados entre clientes.
 - Evidências: fotos até 15 MB, áudios até 50 MB e vídeos até 300 MB por envio. Os bytes ficam em `/app/storage`; metadados e hashes ficam no SQLite.
 - Captura móvel: áudio e vídeo podem ser gravados diretamente no navegador com prévia antes do envio; quando `MediaRecorder` não estiver disponível, a interface oferece seleção de arquivo como alternativa.
 - Ajuda: `/ajuda` contém a matriz de permissões e o passo a passo de todos os fluxos disponíveis.

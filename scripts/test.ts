@@ -15,6 +15,8 @@ const inspectionColumns=db.prepare('PRAGMA table_info(inspections)').all() as {n
 assert.ok(inspectionColumns.some(column=>column.name==='project_id'),'Migração project_id não aplicada');
 assert.ok((db.prepare('SELECT count(*) n FROM projects').get() as {n:number}).n>0,'Projeto inicial ausente');
 assert.ok((db.prepare("SELECT count(*) n FROM users WHERE role='SUPERVISOR'").get() as {n:number}).n>0,'Supervisor inicial ausente');
+assert.ok((db.prepare('SELECT count(*) n FROM companies WHERE active=1').get() as {n:number}).n>0,'Empresa ativa inicial ausente');
+assert.ok((db.prepare('SELECT count(*) n FROM units WHERE active=1').get() as {n:number}).n>0,'Unidade ativa inicial ausente');
 
 const previousAppUrl=process.env.APP_URL;
 delete process.env.APP_URL;
@@ -32,4 +34,4 @@ assert.equal(pdf.subarray(0,5).toString(),'%PDF-');
 assert.ok(pdf.length>3000,'PDF de validação incompleto');
 assert.ok(pdf.subarray(-20).toString().includes('%%EOF'),'PDF sem marcador final');
 
-console.log('24 verificações de domínio, banco, redirects e PDF aprovadas.');
+console.log('26 verificações de domínio, banco, empresas, unidades, redirects e PDF aprovadas.');

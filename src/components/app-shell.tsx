@@ -8,6 +8,7 @@ import {
   Layers3,
   LayoutDashboard,
   LogOut,
+  MapPin,
   Plus,
   TriangleAlert,
   Users,
@@ -30,6 +31,7 @@ export function AppShell({user,children,active='dashboard'}:{user:SessionUser;ch
   if (user.role !== 'INSPECTOR') {
     links.splice(2,0,
       {id:'projects',href:'/projetos',icon:FolderKanban,label:'Projetos'},
+      {id:'units',href:'/unidades',icon:MapPin,label:'Unidades'},
       {id:'users',href:'/usuarios',icon:Users,label:'Usuários'},
     );
   }
