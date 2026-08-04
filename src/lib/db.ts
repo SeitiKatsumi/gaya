@@ -37,7 +37,9 @@ export function migrate() {
   db.exec("CREATE INDEX IF NOT EXISTS idx_inspections_project ON inspections(project_id, status); PRAGMA optimize;");
   const count = db.prepare("SELECT count(*) as n FROM users").get() as {n:number};
   if (!count.n) seed();
-  db.prepare("INSERT OR IGNORE INTO projects(id,company_id,unit_id,code,name,description,status,manager_id,created_by) SELECT 'prj1','c1','u1','PRJ-SP11','OperaÃ§Ã£o SP11','Programa recorrente de inspeÃ§Ãµes do centro de distribuiÃ§Ã£o','ACTIVE','usr-super','usr-super' WHERE EXISTS(SELECT 1 FROM companies WHERE id='c1')").run();
+  db.prepare("INSERT OR IGNORE INTO projects(id,company_id,unit_id,code,name,description,status,manager_id,created_by) SELECT 'prj1','c1','u1','PRJ-SP11','Operação SP11','Programa recorrente de inspeções do centro de distribuição','ACTIVE','usr-super','usr-super' WHERE EXISTS(SELECT 1 FROM companies WHERE id='c1')").run();
+  db.prepare("UPDATE projects SET name='Operação SP11' WHERE id='prj1' AND name='OperaÃ§Ã£o SP11'").run();
+  db.prepare("UPDATE projects SET description='Programa recorrente de inspeções do centro de distribuição' WHERE id='prj1' AND description='Programa recorrente de inspeÃ§Ãµes do centro de distribuiÃ§Ã£o'").run();
   db.prepare("UPDATE inspections SET project_id='prj1' WHERE company_id='c1' AND project_id IS NULL").run();
 }
 
@@ -48,7 +50,7 @@ export function seed() {
     const hash=bcrypt.hashSync("Gaya@2026",10);
     const add=db.prepare("INSERT OR IGNORE INTO users(id,company_id,name,email,password_hash,role) VALUES(?,?,?,?,?,?)");
     add.run('usr-admin',null,'Marina Costa','admin@gaya.app',hash,'SUPER_ADMIN'); add.run('usr-super','c1','Rafael Mendes','supervisor@gaya.app',hash,'SUPERVISOR'); add.run('usr-inspector','c1','Camila Nunes','inspetor@gaya.app',hash,'INSPECTOR');
-    db.prepare("INSERT OR IGNORE INTO projects(id,company_id,unit_id,code,name,description,status,manager_id,created_by) VALUES('prj1','c1','u1','PRJ-SP11','OperaÃ§Ã£o SP11','Programa recorrente de inspeÃ§Ãµes do centro de distribuiÃ§Ã£o','ACTIVE','usr-super','usr-super')").run();
+    db.prepare("INSERT OR IGNORE INTO projects(id,company_id,unit_id,code,name,description,status,manager_id,created_by) VALUES('prj1','c1','u1','PRJ-SP11','Operação SP11','Programa recorrente de inspeções do centro de distribuição','ACTIVE','usr-super','usr-super')").run();
     db.prepare("INSERT OR IGNORE INTO templates(id,company_id,name,category,description,version,status,owner_id) VALUES('tpl1','c1','Visita Técnica Operacional','Operações','Checklist técnico para centros de distribuição',3,'PUBLISHED','usr-super')").run();
     const item=db.prepare("INSERT OR IGNORE INTO template_items(id,template_id,area,section,code,title,guidance,expected_answer,criticality,photo_required,sort_order) VALUES(?,?,?,?,?,?,?,?,?,?,?)");
     item.run('i1','tpl1','Recebimento','Doca','REC-01','A área de recebimento está limpa e organizada?','Verifique piso, docas e áreas de circulação.','Sim','MEDIUM',1,1); item.run('i2','tpl1','Recebimento','Controle','REC-02','Foram observados indícios de pragas?','Inspecione cantos, ralos e embalagens.','Não','CRITICAL',1,2); item.run('i3','tpl1','Armazenagem','Estrutura','ARM-01','Os produtos estão afastados das paredes?','Validar distância mínima definida no procedimento.','Sim','HIGH',1,3); item.run('i4','tpl1','Armazenagem','Validade','ARM-02','O controle FEFO está sendo aplicado?','Compare datas e posicionamento do estoque.','Sim','HIGH',0,4); item.run('i5','tpl1','Expedição','Segurança','EXP-01','As rotas de fuga estão desobstruídas?','Verifique sinalização e acesso às saídas.','Sim','CRITICAL',1,5);

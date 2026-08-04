@@ -1,3 +1,4 @@
+import {appUrl} from '@/lib/http';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -17,20 +18,20 @@ type Prepared={id:string;kind:string;originalName:string;fullPath:string;mime:st
 
 export async function POST(req:Request,{params}:{params:Promise<{id:string}>}){
   const user=await currentUser();
-  if(!user)return NextResponse.redirect(new URL('/login',req.url),303);
+  if(!user)return NextResponse.redirect(appUrl(req,'/login'),303);
   const {id}=await params;
   const inspection=db.prepare('SELECT * FROM inspections WHERE id=?').get(id) as any;
   if(!inspection||user.role!=='SUPER_ADMIN'&&inspection.company_id!==user.company_id||user.role==='INSPECTOR'&&inspection.inspector_id!==user.id)return NextResponse.json({error:'Sem permissão'},{status:403});
   if(!['SCHEDULED','IN_PROGRESS','CHANGES_REQUESTED'].includes(inspection.status))return NextResponse.json({error:'Inspeção bloqueada'},{status:409});
   const form=await req.formData();
   const parsed=responseSchema.safeParse({item_id:String(form.get('item_id')||''),answer:String(form.get('answer')||''),comment:String(form.get('comment')||'')});
-  if(!parsed.success)return NextResponse.redirect(new URL(`/inspecoes/${id}?erro=resposta`,req.url),303);
+  if(!parsed.success)return NextResponse.redirect(appUrl(req,`/inspecoes/${id}?erro=resposta`),303);
   const item=db.prepare('SELECT * FROM template_items WHERE id=? AND template_id=?').get(parsed.data.item_id,inspection.template_id) as any;
   if(!item)return NextResponse.json({error:'Item inválido'},{status:400});
   const selected=Object.entries(mediaConfig).flatMap(([field,config])=>{const file=form.get(field);return file instanceof File&&file.size>0?[{file,config}]:[]});
   for(const {file,config} of selected){
-    if(!file.type.startsWith(config.prefix))return NextResponse.redirect(new URL(`/inspecoes/${id}?erro=tipo`,req.url),303);
-    if(file.size>config.maxMb*1024*1024)return NextResponse.redirect(new URL(`/inspecoes/${id}?erro=tamanho`,req.url),303);
+    if(!file.type.startsWith(config.prefix))return NextResponse.redirect(appUrl(req,`/inspecoes/${id}?erro=tipo`),303);
+    if(file.size>config.maxMb*1024*1024)return NextResponse.redirect(appUrl(req,`/inspecoes/${id}?erro=tamanho`),303);
   }
   const responseId=uid('rsp');
   const storageRoot=path.resolve(/*turbopackIgnore: true*/ process.env.STORAGE_PATH||path.join(/*turbopackIgnore: true*/ process.cwd(),'storage'));
@@ -59,6 +60,6 @@ export async function POST(req:Request,{params}:{params:Promise<{id:string}>}){
       db.exec('COMMIT');
     }catch(error){db.exec('ROLLBACK');throw error}
     audit(user.id,inspection.company_id,'RESPONSE_SAVED','response',responseId,id,old,{answer:parsed.data.answer,compliance,revision,evidences:prepared.map(x=>x.kind)});
-    return NextResponse.redirect(new URL(`/inspecoes/${id}?salvo=${parsed.data.item_id}`,req.url),303);
+    return NextResponse.redirect(appUrl(req,`/inspecoes/${id}?salvo=${parsed.data.item_id}`),303);
   }catch(error){for(const evidence of prepared){try{fs.unlinkSync(evidence.fullPath)}catch{}}throw error}
 }

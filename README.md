@@ -83,7 +83,10 @@ As permissões são verificadas no servidor, inclusive para impedir que Inspetor
 - Inspetor: acessa apenas inspeções atribuídas, responde itens, envia evidências e encaminha o trabalho concluído para revisão.
 - Super Admin: possui visão global e administra dados entre empresas.
 - Evidências: fotos até 15 MB, áudios até 50 MB e vídeos até 300 MB por envio. Os bytes ficam em `/app/storage`; metadados e hashes ficam no SQLite.
+- Captura móvel: áudio e vídeo podem ser gravados diretamente no navegador com prévia antes do envio; quando `MediaRecorder` não estiver disponível, a interface oferece seleção de arquivo como alternativa.
 - Ajuda: `/ajuda` contém a matriz de permissões e o passo a passo de todos os fluxos disponíveis.
+
+Os redirecionamentos após formulários usam `APP_URL` e os cabeçalhos `X-Forwarded-Host`/`X-Forwarded-Proto`. Isso mantém a navegação no domínio público quando a aplicação roda atrás do proxy do CapRover, mesmo que o container escute em `0.0.0.0:80`.
 
 ## Limites e evolução
 

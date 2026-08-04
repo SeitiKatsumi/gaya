@@ -2,7 +2,6 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: "standalone",
-  serverExternalPackages: ["pdfkit"],
   outputFileTracingExcludes: {
     "/*": ["./data/**/*", "./storage/**/*", "./backups/**/*", "./next.config.ts"],
   },
