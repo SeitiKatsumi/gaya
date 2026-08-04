@@ -15,20 +15,11 @@ RUN pnpm build
 
 FROM node:24-bookworm-slim AS runner
 WORKDIR /app
-ENV NODE_ENV=production PORT=80 NEXT_TELEMETRY_DISABLED=1 DATABASE_URL=file:/app/data/gaya.sqlite STORAGE_PATH=/app/storage BACKUP_PATH=/app/backups
-RUN apt-get update \
-  && apt-get install -y --no-install-recommends gosu \
-  && rm -rf /var/lib/apt/lists/* \
-  && groupadd --system --gid 1001 nodejs \
-  && useradd --system --uid 1001 --gid nodejs nextjs \
-  && mkdir -p /app/data /app/storage /app/backups \
-  && chown -R nextjs:nodejs /app
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-COPY --from=builder --chown=nextjs:nodejs /app/public ./public
-COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-RUN chmod 755 /usr/local/bin/docker-entrypoint.sh
+ENV NODE_ENV=production PORT=80 HOSTNAME=0.0.0.0 NEXT_TELEMETRY_DISABLED=1 DATABASE_URL=file:/app/data/gaya.sqlite STORAGE_PATH=/app/storage BACKUP_PATH=/app/backups
+RUN mkdir -p /app/data /app/storage /app/backups
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/public ./public
 EXPOSE 80
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 CMD node -e "fetch('http://127.0.0.1:80/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"
-ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["node","server.js"]
