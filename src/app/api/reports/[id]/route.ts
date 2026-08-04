@@ -3,6 +3,7 @@ import {currentUser} from '@/lib/auth';
 import {audit,db} from '@/lib/db';
 import {appUrl} from '@/lib/http';
 import {createInspectionReport,type ReportInspection,type ReportItem} from '@/lib/report';
+import {inspectionTemplateItems} from '@/lib/inspection-template';
 
 export const runtime='nodejs';
 export const dynamic='force-dynamic';
@@ -17,10 +18,12 @@ export async function GET(req:Request,{params}:{params:Promise<{id:string}>}){
     JOIN templates t ON t.id=i.template_id LEFT JOIN users inspector ON inspector.id=i.inspector_id
     LEFT JOIN users supervisor ON supervisor.id=i.supervisor_id WHERE i.id=?`).get(id) as ReportInspection&{company_id:string;inspector_id:string|null;template_id:string}|undefined;
   if(!inspection||user.role!=='SUPER_ADMIN'&&inspection.company_id!==user.company_id||user.role==='INSPECTOR'&&inspection.inspector_id!==user.id)return NextResponse.json({error:'Sem permissão'},{status:403});
-  const items=db.prepare(`SELECT ti.code,ti.area,ti.title,r.answer,r.compliance,r.comment,
-    (SELECT count(*) FROM evidences e WHERE e.inspection_id=? AND e.item_id=ti.id) evidence_count
-    FROM template_items ti LEFT JOIN responses r ON r.item_id=ti.id AND r.inspection_id=? AND r.is_current=1
-    WHERE ti.template_id=? ORDER BY ti.sort_order`).all(id,id,inspection.template_id) as ReportItem[];
+  const frozenItems=inspectionTemplateItems((inspection as ReportInspection&{template_snapshot?:string|null}).template_snapshot,inspection.template_id);
+  const responses=db.prepare('SELECT item_id,answer,compliance,comment FROM responses WHERE inspection_id=? AND is_current=1').all(id) as {item_id:string;answer:string|null;compliance:string|null;comment:string|null}[];
+  const evidenceCounts=db.prepare('SELECT item_id,count(*) evidence_count FROM evidences WHERE inspection_id=? GROUP BY item_id').all(id) as {item_id:string;evidence_count:number}[];
+  const responseByItem=new Map(responses.map(response=>[response.item_id,response]));
+  const evidenceByItem=new Map(evidenceCounts.map(row=>[row.item_id,row.evidence_count]));
+  const items=frozenItems.map(item=>{const response=responseByItem.get(item.id);return {code:item.code,area:item.area,title:item.title,answer:response?.answer||null,compliance:response?.compliance||null,comment:response?.comment||null,evidence_count:evidenceByItem.get(item.id)||0}}) satisfies ReportItem[];
   const nonconformities=(db.prepare("SELECT count(*) n FROM nonconformities WHERE inspection_id=? AND status NOT IN ('CLOSED','REJECTED')").get(id) as {n:number}).n;
   try{
     const pdf=await createInspectionReport(inspection,items,nonconformities);

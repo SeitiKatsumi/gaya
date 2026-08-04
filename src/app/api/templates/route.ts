@@ -1,4 +1,17 @@
+import {NextResponse} from 'next/server';
+import {z} from 'zod';
+import {currentUser} from '@/lib/auth';
+import {audit,db} from '@/lib/db';
 import {appUrl} from '@/lib/http';
-import {NextResponse} from 'next/server';import {z} from 'zod';import {currentUser} from '@/lib/auth';import {audit,db} from '@/lib/db';import {uid} from '@/lib/utils';
-const schema=z.object({company_id:z.string().optional(),name:z.string().trim().min(3).max(160),category:z.string().trim().min(2).max(80),description:z.string().max(1000).optional(),status:z.enum(['DRAFT','PUBLISHED'])});
-export async function POST(req:Request){const user=await currentUser();if(!user)return NextResponse.redirect(appUrl(req,'/login'),303);if(user.role==='INSPECTOR')return NextResponse.json({error:'Sem permissão'},{status:403});const parsed=schema.safeParse(Object.fromEntries(await req.formData()));if(!parsed.success)return NextResponse.redirect(appUrl(req,'/modelos/novo?erro=campos'),303);const companyId=user.role==='SUPER_ADMIN'?parsed.data.company_id:user.company_id;if(!companyId||!db.prepare('SELECT id FROM companies WHERE id=? AND active=1').get(companyId))return NextResponse.redirect(appUrl(req,'/modelos/novo?erro=empresa'),303);const id=uid('tpl');db.prepare('INSERT INTO templates(id,company_id,name,category,description,status,owner_id) VALUES(?,?,?,?,?,?,?)').run(id,companyId,parsed.data.name,parsed.data.category,parsed.data.description||null,parsed.data.status,user.id);audit(user.id,companyId,'TEMPLATE_CREATED','template',id,undefined,undefined,parsed.data);return NextResponse.redirect(appUrl(req,`/modelos/${id}?ok=1`),303)}
+import {uid} from '@/lib/utils';
+
+const schema=z.object({company_id:z.string().optional(),name:z.string().trim().min(3).max(160),category:z.string().trim().min(2).max(80),description:z.string().max(1000).optional(),status:z.enum(['DRAFT'])});
+
+export async function POST(req:Request){
+  const user=await currentUser();if(!user)return NextResponse.redirect(appUrl(req,'/login'),303);if(user.role==='INSPECTOR')return NextResponse.json({error:'Sem permissão'},{status:403});
+  const parsed=schema.safeParse(Object.fromEntries(await req.formData()));if(!parsed.success)return NextResponse.redirect(appUrl(req,'/modelos/novo?erro=campos'),303);
+  const companyId=user.role==='SUPER_ADMIN'?parsed.data.company_id:user.company_id;
+  if(!companyId||!db.prepare('SELECT id FROM companies WHERE id=? AND active=1').get(companyId))return NextResponse.redirect(appUrl(req,'/modelos/novo?erro=empresa'),303);
+  const id=uid('tpl');db.prepare('INSERT INTO templates(id,company_id,name,category,description,status,owner_id) VALUES(?,?,?,?,?,?,?)').run(id,companyId,parsed.data.name,parsed.data.category,parsed.data.description||null,'DRAFT',user.id);
+  audit(user.id,companyId,'TEMPLATE_CREATED','template',id,undefined,undefined,parsed.data);return NextResponse.redirect(appUrl(req,`/modelos/${id}?ok=1`),303);
+}

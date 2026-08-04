@@ -3,6 +3,7 @@ import { notFound, redirect } from 'next/navigation';
 import { currentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { AppShell } from '@/components/app-shell';
+import { ConfirmSubmit } from '@/components/confirm-submit';
 
 type UserRow={id:string;company_id:string|null;name:string;email:string;role:string;active:number;trade_name:string|null};
 export default async function UserDetails({params,searchParams}:{params:Promise<{id:string}>;searchParams:Promise<{ok?:string;erro?:string}>}) {
@@ -22,5 +23,5 @@ export default async function UserDetails({params,searchParams}:{params:Promise<
         <div className="field"><label>STATUS</label><select name="active" defaultValue={String(row.active)} disabled={row.id===current.id}><option value="1">Ativo</option><option value="0">Inativo</option></select>{row.id===current.id&&<><input type="hidden" name="active" value="1"/><small className="muted">Sua própria conta não pode ser desativada.</small></>}</div>
       </div>
       <div className="form-actions"><Link className="btn btn-ghost" href="/usuarios">Voltar</Link><button className="btn btn-primary">Salvar alterações</button></div>
-    </form></AppShell>;
+    </form>{row.active===1&&row.id!==current.id&&<form className="danger-zone" action={`/api/users/${row.id}`} method="post"><input type="hidden" name="intent" value="deactivate"/><div><b>Desativar usuário</b><p>O acesso será bloqueado imediatamente. O histórico de autoria será preservado.</p></div><ConfirmSubmit label="Desativar usuário" message={`Desativar o acesso de ${row.name}?`}/></form>}</AppShell>;
 }

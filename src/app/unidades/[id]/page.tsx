@@ -3,6 +3,7 @@ import {notFound,redirect} from 'next/navigation';
 import {currentUser} from '@/lib/auth';
 import {db} from '@/lib/db';
 import {AppShell} from '@/components/app-shell';
+import {ConfirmSubmit} from '@/components/confirm-submit';
 
 type Unit={id:string;company_id:string;name:string;code:string;address:string|null;city:string|null;state:string|null;active:number;company_name:string};
 
@@ -28,6 +29,6 @@ export default async function UnitDetails({params,searchParams}:{params:Promise<
         <div className="field"><label>STATUS</label><select name="active" defaultValue={String(unit.active)}><option value="1">Ativa</option><option value="0">Inativa</option></select></div>
       </div>
       <div className="form-actions"><Link className="btn btn-ghost" href="/unidades">Voltar</Link><button className="btn btn-primary">Salvar alterações</button></div>
-    </form>
+    </form>{unit.active===1&&<form className="danger-zone" action={`/api/units/${id}`} method="post"><input type="hidden" name="intent" value="deactivate"/><div><b>Desativar unidade</b><p>Ela deixará de aparecer em novos projetos e inspeções. O histórico será preservado.</p></div><ConfirmSubmit label="Desativar unidade" message={`Desativar a unidade ${unit.name}?`}/></form>}
   </AppShell>;
 }

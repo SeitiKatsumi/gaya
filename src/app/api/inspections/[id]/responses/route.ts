@@ -7,6 +7,7 @@ import {z} from 'zod';
 import {currentUser} from '@/lib/auth';
 import {db,audit} from '@/lib/db';
 import {uid} from '@/lib/utils';
+import {inspectionTemplateItems} from '@/lib/inspection-template';
 
 const responseSchema=z.object({item_id:z.string().min(1),answer:z.enum(['Sim','Não','Não se aplica']),comment:z.string().max(2000)});
 const mediaConfig={
@@ -26,7 +27,8 @@ export async function POST(req:Request,{params}:{params:Promise<{id:string}>}){
   const form=await req.formData();
   const parsed=responseSchema.safeParse({item_id:String(form.get('item_id')||''),answer:String(form.get('answer')||''),comment:String(form.get('comment')||'')});
   if(!parsed.success)return NextResponse.redirect(appUrl(req,`/inspecoes/${id}?erro=resposta`),303);
-  const item=db.prepare('SELECT * FROM template_items WHERE id=? AND template_id=?').get(parsed.data.item_id,inspection.template_id) as any;
+  const snapshotItems=inspectionTemplateItems(inspection.template_snapshot,inspection.template_id);
+  const item=snapshotItems.find(candidate=>candidate.id===parsed.data.item_id);
   if(!item)return NextResponse.json({error:'Item inválido'},{status:400});
   const selected=Object.entries(mediaConfig).flatMap(([field,config])=>{const file=form.get(field);return file instanceof File&&file.size>0?[{file,config}]:[]});
   for(const {file,config} of selected){
@@ -54,8 +56,12 @@ export async function POST(req:Request,{params}:{params:Promise<{id:string}>}){
       db.prepare('INSERT INTO responses(id,inspection_id,item_id,user_id,answer,compliance,comment,revision) VALUES(?,?,?,?,?,?,?,?)').run(responseId,id,parsed.data.item_id,user.id,parsed.data.answer,compliance,parsed.data.comment,revision);
       for(const evidence of prepared)db.prepare('INSERT INTO evidences(id,inspection_id,item_id,response_id,user_id,kind,original_name,path,mime_type,size,hash) VALUES(?,?,?,?,?,?,?,?,?,?,?)').run(evidence.id,id,parsed.data.item_id,responseId,user.id,evidence.kind,evidence.originalName,evidence.fullPath,evidence.mime,evidence.size,evidence.hash);
       if(compliance==='NON_COMPLIANT')db.prepare("INSERT INTO nonconformities(id,inspection_id,item_id,title,severity,status) SELECT ?,?,?,?,?,? WHERE NOT EXISTS(SELECT 1 FROM nonconformities WHERE inspection_id=? AND item_id=? AND status NOT IN ('CLOSED','REJECTED'))").run(uid('nc'),id,parsed.data.item_id,item.title,item.criticality,'OPEN',id,parsed.data.item_id);
-      const total=(db.prepare('SELECT count(*) n FROM template_items WHERE template_id=?').get(inspection.template_id) as {n:number}).n;
-      const done=(db.prepare(`SELECT count(*) n FROM template_items ti WHERE ti.template_id=? AND EXISTS(SELECT 1 FROM responses r WHERE r.inspection_id=? AND r.item_id=ti.id AND r.is_current=1) AND (ti.photo_required=0 OR EXISTS(SELECT 1 FROM evidences e WHERE e.inspection_id=? AND e.item_id=ti.id AND e.kind='PHOTO')) AND (ti.audio_required=0 OR EXISTS(SELECT 1 FROM evidences e WHERE e.inspection_id=? AND e.item_id=ti.id AND e.kind='AUDIO'))`).get(inspection.template_id,id,id,id) as {n:number}).n;
+      const currentResponses=db.prepare('SELECT item_id FROM responses WHERE inspection_id=? AND is_current=1').all(id) as {item_id:string}[];
+      const currentEvidences=db.prepare('SELECT item_id,kind FROM evidences WHERE inspection_id=?').all(id) as {item_id:string;kind:string}[];
+      const answered=new Set(currentResponses.map(row=>row.item_id));
+      const evidenceKeys=new Set(currentEvidences.map(row=>`${row.item_id}:${row.kind}`));
+      const total=snapshotItems.length;
+      const done=snapshotItems.filter(snapshotItem=>answered.has(snapshotItem.id)&&(!snapshotItem.photo_required||evidenceKeys.has(`${snapshotItem.id}:PHOTO`))&&(!snapshotItem.audio_required||evidenceKeys.has(`${snapshotItem.id}:AUDIO`))).length;
       db.prepare("UPDATE inspections SET progress=?,status=CASE WHEN status IN ('SCHEDULED','CHANGES_REQUESTED') THEN 'IN_PROGRESS' ELSE status END,updated_at=CURRENT_TIMESTAMP WHERE id=?").run(total?Math.round(done/total*100):0,id);
       db.exec('COMMIT');
     }catch(error){db.exec('ROLLBACK');throw error}

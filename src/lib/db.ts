@@ -19,7 +19,7 @@ export function migrate() {
   CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, company_id TEXT REFERENCES companies(id), name TEXT NOT NULL, email TEXT NOT NULL UNIQUE, password_hash TEXT NOT NULL, role TEXT NOT NULL CHECK(role IN ('SUPER_ADMIN','SUPERVISOR','INSPECTOR')), active INTEGER DEFAULT 1, created_at TEXT DEFAULT CURRENT_TIMESTAMP);
   CREATE TABLE IF NOT EXISTS projects (id TEXT PRIMARY KEY, company_id TEXT NOT NULL REFERENCES companies(id), unit_id TEXT REFERENCES units(id), code TEXT NOT NULL, name TEXT NOT NULL, description TEXT, status TEXT NOT NULL DEFAULT 'ACTIVE' CHECK(status IN ('PLANNING','ACTIVE','PAUSED','COMPLETED','ARCHIVED')), manager_id TEXT REFERENCES users(id), start_date TEXT, end_date TEXT, created_by TEXT REFERENCES users(id), created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT DEFAULT CURRENT_TIMESTAMP, UNIQUE(company_id, code));
   CREATE TABLE IF NOT EXISTS templates (id TEXT PRIMARY KEY, company_id TEXT REFERENCES companies(id), name TEXT NOT NULL, category TEXT, description TEXT, version INTEGER DEFAULT 1, status TEXT DEFAULT 'PUBLISHED', owner_id TEXT REFERENCES users(id), is_global INTEGER DEFAULT 0, created_at TEXT DEFAULT CURRENT_TIMESTAMP);
-  CREATE TABLE IF NOT EXISTS template_items (id TEXT PRIMARY KEY, template_id TEXT NOT NULL REFERENCES templates(id), area TEXT NOT NULL, section TEXT, code TEXT NOT NULL, title TEXT NOT NULL, guidance TEXT, response_type TEXT DEFAULT 'YES_NO_NA', expected_answer TEXT, criticality TEXT DEFAULT 'MEDIUM', weight REAL DEFAULT 1, photo_required INTEGER DEFAULT 0, audio_required INTEGER DEFAULT 0, condition_json TEXT, sort_order INTEGER NOT NULL);
+  CREATE TABLE IF NOT EXISTS template_items (id TEXT PRIMARY KEY, template_id TEXT NOT NULL REFERENCES templates(id), area TEXT NOT NULL, section TEXT, code TEXT NOT NULL, title TEXT NOT NULL, guidance TEXT, response_type TEXT DEFAULT 'YES_NO_NA', expected_answer TEXT, criticality TEXT DEFAULT 'MEDIUM', weight REAL DEFAULT 1, photo_required INTEGER DEFAULT 0, audio_required INTEGER DEFAULT 0, condition_json TEXT, sort_order INTEGER NOT NULL, active INTEGER NOT NULL DEFAULT 1);
   CREATE TABLE IF NOT EXISTS inspections (id TEXT PRIMARY KEY, company_id TEXT NOT NULL REFERENCES companies(id), unit_id TEXT NOT NULL REFERENCES units(id), project_id TEXT REFERENCES projects(id), template_id TEXT NOT NULL REFERENCES templates(id), control_code TEXT NOT NULL UNIQUE, title TEXT NOT NULL, objective TEXT, scope TEXT, status TEXT NOT NULL DEFAULT 'SCHEDULED', priority TEXT DEFAULT 'NORMAL', supervisor_id TEXT REFERENCES users(id), inspector_id TEXT REFERENCES users(id), planned_start TEXT, planned_end TEXT, progress INTEGER DEFAULT 0, template_snapshot TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT DEFAULT CURRENT_TIMESTAMP);
   CREATE TABLE IF NOT EXISTS inspection_sessions (id TEXT PRIMARY KEY, inspection_id TEXT NOT NULL REFERENCES inspections(id), inspector_id TEXT NOT NULL REFERENCES users(id), started_at TEXT NOT NULL, ended_at TEXT, notes TEXT, status TEXT DEFAULT 'OPEN');
   CREATE TABLE IF NOT EXISTS responses (id TEXT PRIMARY KEY, inspection_id TEXT NOT NULL REFERENCES inspections(id), item_id TEXT NOT NULL REFERENCES template_items(id), user_id TEXT NOT NULL REFERENCES users(id), session_id TEXT REFERENCES inspection_sessions(id), answer TEXT, compliance TEXT DEFAULT 'PENDING', comment TEXT, recommendation TEXT, revision INTEGER DEFAULT 1, is_current INTEGER DEFAULT 1, created_at TEXT DEFAULT CURRENT_TIMESTAMP);
@@ -33,6 +33,18 @@ export function migrate() {
   const inspectionColumns = db.prepare("PRAGMA table_info(inspections)").all() as {name:string}[];
   if (!inspectionColumns.some((column) => column.name === 'project_id')) {
     db.exec("ALTER TABLE inspections ADD COLUMN project_id TEXT REFERENCES projects(id)");
+  }
+  const templateItemColumns = db.prepare("PRAGMA table_info(template_items)").all() as {name:string}[];
+  if (!templateItemColumns.some((column) => column.name === 'active')) {
+    db.exec("ALTER TABLE template_items ADD COLUMN active INTEGER NOT NULL DEFAULT 1");
+  }
+  const legacyInspections=db.prepare("SELECT id,template_id,template_snapshot FROM inspections").all() as {id:string;template_id:string;template_snapshot:string|null}[];
+  const freezeSnapshot=db.prepare('UPDATE inspections SET template_snapshot=? WHERE id=?');
+  const snapshotItems=db.prepare('SELECT * FROM template_items WHERE template_id=? ORDER BY sort_order');
+  for(const inspection of legacyInspections){
+    let hasItems=false;
+    try{const parsed=JSON.parse(inspection.template_snapshot||'{}') as {items?:unknown};hasItems=Array.isArray(parsed.items)&&parsed.items.length>0}catch{}
+    if(!hasItems)freezeSnapshot.run(JSON.stringify({templateId:inspection.template_id,items:snapshotItems.all(inspection.template_id)}),inspection.id);
   }
   db.exec("CREATE INDEX IF NOT EXISTS idx_inspections_project ON inspections(project_id, status); PRAGMA optimize;");
   const count = db.prepare("SELECT count(*) as n FROM users").get() as {n:number};

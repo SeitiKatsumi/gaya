@@ -1,4 +1,24 @@
+import {NextResponse} from 'next/server';
+import {currentUser} from '@/lib/auth';
+import {audit,db} from '@/lib/db';
 import {appUrl} from '@/lib/http';
-import {NextResponse} from 'next/server';import {currentUser} from '@/lib/auth';import {db,audit} from '@/lib/db';import {uid} from '@/lib/utils';
-const transitions:Record<string,string[]>={SCHEDULED:['IN_PROGRESS'],CHANGES_REQUESTED:['IN_PROGRESS'],IN_PROGRESS:['IN_REVIEW'],IN_REVIEW:['CHANGES_REQUESTED','APPROVED']};
-export async function POST(req:Request,{params}:{params:Promise<{id:string}>}){const user=await currentUser();if(!user)return NextResponse.redirect(appUrl(req,'/login'),303);const {id}=await params;const status=String((await req.formData()).get('status'));const inspection=db.prepare('SELECT * FROM inspections WHERE id=?').get(id) as any;if(!inspection||user.role!=='SUPER_ADMIN'&&inspection.company_id!==user.company_id||user.role==='INSPECTOR'&&inspection.inspector_id!==user.id)return NextResponse.json({error:'Sem permissão'},{status:403});if(!transitions[inspection.status]?.includes(status))return NextResponse.json({error:'Transição inválida'},{status:409});if(['APPROVED','CHANGES_REQUESTED'].includes(status)&&user.role==='INSPECTOR')return NextResponse.json({error:'Apenas supervisores podem revisar'},{status:403});if(status==='IN_REVIEW'&&inspection.progress<100)return NextResponse.json({error:'Conclua respostas e evidências obrigatórias'},{status:409});db.exec('BEGIN IMMEDIATE');try{db.prepare('UPDATE inspections SET status=?,updated_at=CURRENT_TIMESTAMP WHERE id=?').run(status,id);if(status==='IN_PROGRESS')db.prepare('INSERT INTO inspection_sessions(id,inspection_id,inspector_id,started_at) VALUES(?,?,?,?)').run(uid('ses'),id,inspection.inspector_id||user.id,new Date().toISOString());if(status==='IN_REVIEW')db.prepare("UPDATE inspection_sessions SET status='CLOSED',ended_at=? WHERE inspection_id=? AND status='OPEN'").run(new Date().toISOString(),id);db.exec('COMMIT')}catch(error){db.exec('ROLLBACK');throw error}audit(user.id,inspection.company_id,'STATUS_CHANGED','inspection',id,id,{status:inspection.status},{status});return NextResponse.redirect(appUrl(req,`/inspecoes/${id}`),303)}
+import {uid} from '@/lib/utils';
+
+const transitions:Record<string,string[]>={SCHEDULED:['IN_PROGRESS','CANCELLED'],CHANGES_REQUESTED:['IN_PROGRESS','CANCELLED'],IN_PROGRESS:['IN_REVIEW','CANCELLED'],IN_REVIEW:['CHANGES_REQUESTED','APPROVED','CANCELLED']};
+
+export async function POST(req:Request,{params}:{params:Promise<{id:string}>}){
+  const user=await currentUser();if(!user)return NextResponse.redirect(appUrl(req,'/login'),303);
+  const {id}=await params;const status=String((await req.formData()).get('status'));
+  const inspection=db.prepare('SELECT * FROM inspections WHERE id=?').get(id) as any;
+  if(!inspection||user.role!=='SUPER_ADMIN'&&inspection.company_id!==user.company_id||user.role==='INSPECTOR'&&inspection.inspector_id!==user.id)return NextResponse.json({error:'Sem permissão'},{status:403});
+  if(!transitions[inspection.status]?.includes(status))return NextResponse.json({error:'Transição inválida'},{status:409});
+  if(['APPROVED','CHANGES_REQUESTED','CANCELLED'].includes(status)&&user.role==='INSPECTOR')return NextResponse.json({error:'Apenas supervisores podem revisar ou cancelar'},{status:403});
+  if(status==='IN_REVIEW'&&inspection.progress<100)return NextResponse.json({error:'Conclua respostas e evidências obrigatórias'},{status:409});
+  db.exec('BEGIN IMMEDIATE');try{
+    db.prepare('UPDATE inspections SET status=?,updated_at=CURRENT_TIMESTAMP WHERE id=?').run(status,id);
+    if(status==='IN_PROGRESS')db.prepare('INSERT INTO inspection_sessions(id,inspection_id,inspector_id,started_at) VALUES(?,?,?,?)').run(uid('ses'),id,inspection.inspector_id||user.id,new Date().toISOString());
+    if(['IN_REVIEW','CANCELLED'].includes(status))db.prepare("UPDATE inspection_sessions SET status='CLOSED',ended_at=? WHERE inspection_id=? AND status='OPEN'").run(new Date().toISOString(),id);
+    db.exec('COMMIT');
+  }catch(error){db.exec('ROLLBACK');throw error}
+  audit(user.id,inspection.company_id,'STATUS_CHANGED','inspection',id,id,{status:inspection.status},{status});return NextResponse.redirect(appUrl(req,`/inspecoes/${id}`),303);
+}

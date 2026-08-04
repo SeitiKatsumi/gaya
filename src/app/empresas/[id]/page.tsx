@@ -4,6 +4,7 @@ import {notFound,redirect} from 'next/navigation';
 import {currentUser} from '@/lib/auth';
 import {db} from '@/lib/db';
 import {AppShell} from '@/components/app-shell';
+import {ConfirmSubmit} from '@/components/confirm-submit';
 
 type Company={id:string;legal_name:string;trade_name:string;document:string|null;active:number};
 type Unit={id:string;name:string;code:string;address:string|null;city:string|null;state:string|null;active:number};
@@ -20,7 +21,7 @@ export default async function CompanyDetails({params,searchParams}:{params:Promi
   return <AppShell user={user} active="companies">
     <header className="topbar"><div><div className="eyebrow">Empresa · Administração global</div><h1 className="title">{company.trade_name}</h1></div><Link href="/empresas" className="btn btn-ghost">Voltar</Link></header>
     <form className="card form-card" action={`/api/companies/${id}`} method="post">
-      {query.ok==='empresa'&&<div className="notice success-notice">Empresa atualizada com sucesso.</div>}
+      {query.ok&&<div className="notice success-notice">{query.ok==='desativada'?'Empresa desativada. Todo o histórico foi preservado.':'Empresa atualizada com sucesso.'}</div>}
       {query.erro&&<div className="error">Não foi possível salvar. Revise os campos e o documento informado.</div>}
       <div className="grid form-grid">
         <div className="field field-wide"><label>RAZÃO SOCIAL</label><input name="legal_name" required minLength={3} maxLength={180} defaultValue={company.legal_name}/></div>
@@ -29,12 +30,12 @@ export default async function CompanyDetails({params,searchParams}:{params:Promi
         <div className="field"><label>STATUS</label><select name="active" defaultValue={String(company.active)}><option value="1">Ativa</option><option value="0">Inativa</option></select></div>
       </div>
       <div className="form-actions"><button className="btn btn-primary">Salvar empresa</button></div>
-    </form>
+    </form>{company.active===1&&<form className="danger-zone" action={`/api/companies/${id}`} method="post"><input type="hidden" name="intent" value="deactivate"/><div><b>Desativar empresa</b><p>Novos cadastros serão bloqueados, sem apagar unidades, usuários, inspeções ou relatórios.</p></div><ConfirmSubmit label="Desativar empresa" message={`Desativar a empresa ${company.trade_name}?`}/></form>}
     <div className="section-head"><div><h2>Unidades</h2><p>Locais operacionais disponíveis para projetos e inspeções.</p></div></div>
-    <div className="grid cards-grid">{units.map(unit=><article className="card entity-card" key={unit.id}>
+    <div className="grid cards-grid">{units.map(unit=><Link href={`/unidades/${unit.id}`} className="card entity-card" key={unit.id}>
       <div className="entity-card-head"><span className="icon-chip"><MapPin size={18}/></span><span className={`badge ${unit.active?'success':'warn'}`}>{unit.active?'Ativa':'Inativa'}</span></div>
       <div><h2>{unit.name}</h2><p className="muted">{unit.code}</p><p className="muted">{[unit.address,unit.city,unit.state].filter(Boolean).join(' · ')||'Endereço não informado'}</p></div>
-    </article>)}</div>
+    </Link>)}</div>
     <div className="section-head"><div><h2>Adicionar unidade</h2><p>Cadastre outras filiais, operações ou locais de inspeção.</p></div></div>
     <form className="card form-card" action={`/api/companies/${id}/units`} method="post">
       {query.ok==='unidade'&&<div className="notice success-notice">Unidade adicionada com sucesso.</div>}
