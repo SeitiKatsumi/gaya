@@ -1,10 +1,10 @@
 # Gaya
 
-Plataforma operacional, responsiva e mobile-first para planejar, executar, supervisionar e documentar inspeções e visitas técnicas. O núcleo entregue inclui autenticação, três perfis, isolamento por empresa, modelos versionados, inspeções, respostas com histórico, evidências fotográficas, não conformidades, auditoria e PDF.
+Plataforma operacional, responsiva e mobile-first para planejar, executar, supervisionar e documentar inspeções e visitas técnicas. O produto inclui autenticação, três perfis, isolamento por empresa, usuários, projetos, modelos, inspeções, respostas versionadas, fotos, áudios, vídeos, não conformidades com plano de ação, auditoria, PDF e uma Central de Ajuda por perfil.
 
 ## Tecnologias
 
-Next.js 16, React 19, TypeScript, SQLite com `better-sqlite3`, autenticação JWT em cookie HttpOnly, PDFKit, Vitest e Docker.
+Next.js 16, React 19, TypeScript, SQLite nativo do Node (`node:sqlite`), autenticação JWT em cookie HttpOnly, Zod, bcrypt, PDFKit e Docker.
 
 ## Início local
 
@@ -50,7 +50,7 @@ A aplicação fica disponível em `http://localhost` (porta 80). O health check 
 
 1. Crie um aplicativo com uma única instância.
 2. Conecte o repositório GitHub e mantenha `captain-definition` na raiz.
-3. Configure volumes persistentes: `/app/data`, `/app/storage` e `/app/backups`.
+3. Configure volumes persistentes: `/app/data`, `/app/storage` e `/app/backups`. No ambiente atual, os rótulos são `gaya-data`, `gaya-storage` e `gaya-backups`.
 4. Configure as variáveis de `.env.example`, especialmente `SESSION_SECRET` e `APP_URL`.
 5. Habilite HTTPS e direcione o domínio para o app. A porta interna é 80.
 6. Não habilite múltiplas réplicas enquanto SQLite for usado.
@@ -75,8 +75,16 @@ O comando cria uma cópia consistente do SQLite com `VACUUM INTO`, inclui o arma
 
 ## Segurança e LGPD
 
-As permissões são verificadas no servidor, inclusive para impedir que Inspetores criem inspeções. Cookies de sessão são HttpOnly, evidências recebem hash SHA-256 e logs registram ações relevantes. Não armazene segredos no repositório. A política de privacidade está em `/privacidade` e os termos em `/termos`.
+As permissões são verificadas no servidor, inclusive para impedir que Inspetores acessem cadastros ou inspeções não atribuídas. Supervisores administram usuários, projetos, modelos e inspeções somente da própria empresa. Cookies de sessão são HttpOnly, evidências recebem hash SHA-256, o acesso a arquivos exige autorização e logs registram ações relevantes. Não armazene segredos no repositório. A política de privacidade está em `/privacidade` e os termos em `/termos`.
+
+## Fluxos operacionais
+
+- Supervisor: cadastra usuários, projetos e modelos; programa inspeções; revisa, solicita ajustes, aprova e administra planos de ação.
+- Inspetor: acessa apenas inspeções atribuídas, responde itens, envia evidências e encaminha o trabalho concluído para revisão.
+- Super Admin: possui visão global e administra dados entre empresas.
+- Evidências: fotos até 15 MB, áudios até 50 MB e vídeos até 300 MB por envio. Os bytes ficam em `/app/storage`; metadados e hashes ficam no SQLite.
+- Ajuda: `/ajuda` contém a matriz de permissões e o passo a passo de todos os fluxos disponíveis.
 
 ## Limites e evolução
 
-SQLite atende a implantação inicial em uma única instância. Para maior concorrência ou múltiplas réplicas, migre para PostgreSQL, substitua a camada de banco preservando os identificadores e mova mídias para storage compatível com S3. Áudio e vídeo possuem estrutura de metadados pronta; a transcrição depende de `OPENAI_API_KEY` e deve ser habilitada após configurar o provedor. O modo offline completo requer uma fase adicional de sincronização e resolução de conflitos.
+SQLite atende a implantação inicial em uma única instância. Para maior concorrência ou múltiplas réplicas, migre para PostgreSQL, substitua a camada de banco preservando os identificadores e mova mídias para storage compatível com S3. Fotos, áudios e vídeos são persistidos e servidos com autorização e suporte a `Range`. A transcrição automática depende de um provedor e de `OPENAI_API_KEY`; sem essa configuração o áudio original permanece disponível. O modo offline completo requer uma fase adicional de sincronização e resolução de conflitos.
