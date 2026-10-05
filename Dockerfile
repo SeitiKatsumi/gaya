@@ -12,6 +12,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1 NODE_OPTIONS=--max-old-space-size=768
 RUN pnpm build
+RUN cp -RL node_modules/bcryptjs /tmp/gaya-bcryptjs
 
 FROM node:24-bookworm-slim AS runner
 WORKDIR /app
@@ -22,6 +23,7 @@ RUN /opt/whisper/bin/python -c "from faster_whisper import WhisperModel; Whisper
 ENV TRANSCRIPTION_PROVIDER=local LOCAL_WHISPER_PYTHON=/opt/whisper/bin/python LOCAL_WHISPER_CACHE=/opt/whisper-cache LOCAL_WHISPER_MODEL=base
 RUN mkdir -p /app/data /app/storage /app/backups
 COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /tmp/gaya-bcryptjs ./node_modules/bcryptjs
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/scripts/prepare-production.ts /app/scripts/gaya-units.json ./scripts/
