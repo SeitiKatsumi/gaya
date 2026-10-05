@@ -5,7 +5,8 @@ const nextConfig: NextConfig = {
   outputFileTracingExcludes: {
     "/*": ["./data/**/*", "./storage/**/*", "./backups/**/*", "./next.config.ts"],
   },
-  experimental: { serverActions: { bodySizeLimit: "25mb" } },
+  // ponytail: bound build workers so deployment fits the shared production server.
+  experimental: { cpus: 2, serverActions: { bodySizeLimit: "25mb" } },
 };
 
 export default nextConfig;
