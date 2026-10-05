@@ -16,7 +16,7 @@ export async function POST(req:Request){
   if(!template||!template.is_global&&template.company_id!==unit.company_id)return NextResponse.json({error:'Modelo inválido'},{status:400});
   const items=db.prepare('SELECT * FROM template_items WHERE template_id=? AND active=1 ORDER BY sort_order').all(template.id);
   if(!items.length)return NextResponse.json({error:'O modelo não possui itens ativos'},{status:400});
-  if(!db.prepare("SELECT id FROM users WHERE id=? AND company_id=? AND role='INSPECTOR' AND active=1").get(parsed.data.inspector_id,unit.company_id))return NextResponse.json({error:'Inspetor inválido'},{status:400});
+  if(!db.prepare("SELECT id FROM users WHERE id=? AND company_id=? AND role='INSPECTOR' AND active=1").get(parsed.data.inspector_id,unit.company_id))return NextResponse.json({error:'Responsável técnico inválido'},{status:400});
   if(parsed.data.project_id&&!db.prepare("SELECT id FROM projects WHERE id=? AND company_id=? AND status IN ('PLANNING','ACTIVE')").get(parsed.data.project_id,unit.company_id))return NextResponse.json({error:'Projeto inválido'},{status:400});
   const id=uid('ins');const month=String(new Date().getMonth()+1).padStart(2,'0');const count=(db.prepare('SELECT count(*) n FROM inspections WHERE company_id=?').get(unit.company_id) as {n:number}).n+1;const code=`RQ-${unit.code}.${month}/${new Date().getFullYear()}-${String(count).padStart(2,'0')}`;
   const snapshot=JSON.stringify({templateId:template.id,version:template.version,items});

@@ -1,5 +1,6 @@
 import PDFDocument from 'pdfkit/js/pdfkit.standalone.js';
 import {statusLabel} from './utils.ts';
+import type {FilledItem,PriorPlan} from './received-reports.ts';
 
 export type ReportInspection = {
   control_code: string;
@@ -65,7 +66,7 @@ export async function createInspectionReport(inspection:ReportInspection,items:R
 
   doc.addPage();
   sectionTitle(doc,'Identificação','Dados do planejamento e responsáveis pela inspeção.');
-  infoRow(doc,'Empresa',inspection.company_name);infoRow(doc,'Unidade',inspection.unit_name);infoRow(doc,'Endereço',inspection.address||'Não informado');infoRow(doc,'Modelo aplicado',inspection.template_name);infoRow(doc,'Período planejado',`${dateLabel(inspection.planned_start)} a ${dateLabel(inspection.planned_end)}`);infoRow(doc,'Inspetor responsável',inspection.inspector_name||'Não informado');infoRow(doc,'Supervisor',inspection.supervisor_name||'Não informado');infoRow(doc,'Objetivo',inspection.objective||'Não informado');infoRow(doc,'Escopo',inspection.scope||'Não informado');
+  infoRow(doc,'Empresa',inspection.company_name);infoRow(doc,'Unidade',inspection.unit_name);infoRow(doc,'Endereço',inspection.address||'Não informado');infoRow(doc,'Modelo aplicado',inspection.template_name);infoRow(doc,'Período planejado',`${dateLabel(inspection.planned_start)} a ${dateLabel(inspection.planned_end)}`);infoRow(doc,'Responsável técnico responsável',inspection.inspector_name||'Não informado');infoRow(doc,'Coordenador',inspection.supervisor_name||'Não informado');infoRow(doc,'Objetivo',inspection.objective||'Não informado');infoRow(doc,'Escopo',inspection.scope||'Não informado');
 
   doc.addPage();
   sectionTitle(doc,'Resultados da inspeção',`${items.length} itens de verificação, com respostas e evidências preservadas.`);
@@ -94,4 +95,34 @@ export async function createInspectionReport(inspection:ReportInspection,items:R
 
   doc.end();
   return finished;
+}
+
+export async function createVisitReport(inspection:ReportInspection&{unit_code:string;received_at:string|null;send_due_date:string|null},items:FilledItem[],plans:PriorPlan[],photos:{item_id:string;name:string;data:Buffer}[]){
+  const doc=new PDFDocument({size:'A4',margins:{top:52,bottom:120,left:52,right:52},bufferPages:true,info:{Title:safePdfText(`Relatório ${inspection.unit_code}`),Author:'Gaya'}});
+  const chunks:Buffer[]=[];const finished=new Promise<Buffer>((resolve,reject)=>{doc.on('data',(chunk:Buffer)=>chunks.push(chunk));doc.on('end',()=>resolve(Buffer.concat(chunks)));doc.on('error',reject);});
+  doc.fillColor(COLORS.green).font('Helvetica-Bold').fontSize(25).text('Gaya');
+  doc.moveDown(.6).fillColor(COLORS.ink).fontSize(18).text(safePdfText(`Relatório de ${inspection.unit_code}`));
+  doc.moveDown(.5);infoRow(doc,'Data da visita',dateLabel(inspection.planned_start));infoRow(doc,'Responsável Técnico',inspection.inspector_name||'Não informado');infoRow(doc,'Situação',statusLabel(inspection.status));
+  if(inspection.received_at)infoRow(doc,'Recebido em',new Date(inspection.received_at.includes('T')?inspection.received_at:inspection.received_at.replace(' ','T')+'Z').toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'}));
+  if(inspection.send_due_date)infoRow(doc,'Data limite de envio',dateLabel(inspection.send_due_date));
+  let section='';
+  const planFields=[['nonconformities','Não Conformidade(s)'],['immediate','Medidas Imediatas'],['corrective','Ação(ões) Corretiva(s)'],['preventive','Ação(ões) Preventiva(s)'],['responsible','Responsáveis']] as const;
+  for(const item of items){
+    const current=item.response_type==='DOCUMENT'?'Verificação Documental':item.response_type==='ACTION_PLAN'?'Plano de Ação':item.response_type==='PLAN_REVIEW'?'Verificação de Planos de Ação Passados':item.area;
+    if(current!==section){doc.moveDown();sectionTitle(doc,current);section=current;}
+    ensureSpace(doc,110);doc.fillColor(COLORS.ink).font('Helvetica-Bold').fontSize(11).text(safePdfText(item.title));doc.moveDown(.5);
+    if(item.response_type==='DOCUMENT'){
+      infoRow(doc,'Presente e vigente?',item.answer);infoRow(doc,'Se sim, vigente em pasta?',item.details.location||'—');infoRow(doc,'Vencimento',dateLabel(item.details.expiry||null));infoRow(doc,'Periodicidade',item.document_periodicity||'—');infoRow(doc,'Número de exemplares em pasta',item.document_copies||'—');
+    }else if(item.response_type==='ACTION_PLAN'){
+      infoRow(doc,'Área/Departamento',item.section||item.area);for(const [field,label] of planFields)infoRow(doc,label,item.details[field]||'—');
+    }else if(item.response_type==='PLAN_REVIEW'){
+      for(const check of item.details.checks||[]){const plan=plans.find(plan=>plan.id===check.id);infoRow(doc,'Plano anterior',plan?`${plan.department} - ${dateLabel(plan.date)} - ${plan.details.nonconformities||''}`:'Plano anterior');infoRow(doc,'Concluído?',check.answer);infoRow(doc,'Observações',check.comment||'—');}
+    }else{
+      infoRow(doc,'Área/Departamento',item.section||item.area);infoRow(doc,'Sim / Não',item.answer);infoRow(doc,'Transcrição do áudio / Observações',item.comment||'—');
+      for(const photo of photos.filter(photo=>photo.item_id===item.id)){ensureSpace(doc,170);const top=doc.y;try{doc.image(`data:${photo.data[0]===0x89?'image/png':'image/jpeg'};base64,${photo.data.toString('base64')}`,PAGE.left,top,{fit:[240,130]});doc.y=top+138;infoRow(doc,'Foto associada',photo.name);}catch{doc.y=top;infoRow(doc,'Foto anexada ao relatório',photo.name);}}
+    }
+  }
+  const range=doc.bufferedPageRange();
+  for(let page=range.start;page<range.start+range.count;page++){doc.switchToPage(page);doc.page.margins.bottom=52;doc.moveTo(PAGE.left,740).lineTo(PAGE.right,740).strokeColor(COLORS.line).stroke();doc.fillColor(COLORS.muted).font('Helvetica').fontSize(8).text(safePdfText(inspection.control_code),PAGE.left,749,{width:350,lineBreak:false});doc.text(`Página ${page+1} de ${range.count}`,PAGE.right-110,749,{width:110,align:'right',lineBreak:false});}
+  doc.end();return finished;
 }

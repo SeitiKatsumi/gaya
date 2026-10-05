@@ -11,12 +11,12 @@ type Item={id:string;area:string;section:string|null;code:string;title:string;gu
 const templateStatus=(status:string)=>status==='PUBLISHED'?'Publicado':status==='ARCHIVED'?'Arquivado':'Rascunho';
 
 export default async function TemplateDetails({params,searchParams}:{params:Promise<{id:string}>;searchParams:Promise<{ok?:string;erro?:string}>}){
-  const user=await currentUser();if(!user)redirect('/login');
+  const user=await currentUser();if(!user)redirect('/login');if(user.role==='INSPECTOR')redirect('/inspecoes');
   const {id}=await params;
   const template=db.prepare('SELECT * FROM templates WHERE id=?').get(id) as Template|undefined;
   if(!template||(user.role!=='SUPER_ADMIN'&&!template.is_global&&template.company_id!==user.company_id))notFound();
   const items=db.prepare('SELECT * FROM template_items WHERE template_id=? AND active=1 ORDER BY sort_order').all(id) as Item[];
-  const canEdit=user.role!=='INSPECTOR'&&!template.is_global&&(user.role==='SUPER_ADMIN'||template.company_id===user.company_id);
+  const canEdit=true&&!template.is_global&&(user.role==='SUPER_ADMIN'||template.company_id===user.company_id);
   const query=await searchParams;
   return <AppShell user={user} active="templates"><header className="topbar"><div><div className="eyebrow">{template.category||'Modelo'} · versão {template.version}</div><h1 className="title">{template.name}</h1></div><span className={'badge '+(template.status==='PUBLISHED'?'success':template.status==='ARCHIVED'?'warn':'')}>{templateStatus(template.status)}</span></header>
     {query.ok&&<div className="notice success-notice">{query.ok==='item-excluido'?'Item excluído das próximas inspeções. O histórico foi preservado.':query.ok==='modelo-arquivado'?'Modelo arquivado. Inspeções anteriores continuam disponíveis.':'Alterações salvas com sucesso.'}</div>}{query.erro&&<div className="error">{query.erro==='itens'?'Adicione ao menos um item antes de publicar o modelo.':'Não foi possível salvar. Revise os campos.'}</div>}

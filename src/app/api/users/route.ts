@@ -1,4 +1,4 @@
-import {appUrl} from '@/lib/http';
+import {appUrl,publicOrigin} from '@/lib/http';
 import bcrypt from 'bcryptjs';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
@@ -9,6 +9,7 @@ import { uid } from '@/lib/utils';
 const schema=z.object({name:z.string().trim().min(3).max(120),email:z.email().transform(v=>v.trim().toLowerCase()),password:z.string().min(8).max(128).regex(/[A-Za-z]/).regex(/[0-9]/),company_id:z.string().optional(),role:z.enum(['SUPER_ADMIN','SUPERVISOR','INSPECTOR'])});
 export async function POST(req:Request){
   const actor=await currentUser(); if(!actor)return NextResponse.redirect(appUrl(req,'/login'),303); if(actor.role==='INSPECTOR')return NextResponse.json({error:'Sem permissão'},{status:403});
+  const origin=req.headers.get('origin');if(origin&&origin!==publicOrigin(req))return NextResponse.json({error:'Origem inválida'},{status:403});
   const parsed=schema.safeParse(Object.fromEntries(await req.formData())); if(!parsed.success)return NextResponse.redirect(appUrl(req,'/usuarios/novo?erro=campos'),303);
   if(actor.role==='SUPERVISOR'&&parsed.data.role==='SUPER_ADMIN')return NextResponse.json({error:'Sem permissão'},{status:403});
   const companyId=actor.role==='SUPER_ADMIN'?(parsed.data.role==='SUPER_ADMIN'?null:parsed.data.company_id||null):actor.company_id;

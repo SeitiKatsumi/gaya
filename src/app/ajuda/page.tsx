@@ -1,43 +1,109 @@
-import {redirect} from 'next/navigation';import {Check,Info,ShieldCheck,X} from 'lucide-react';import {currentUser,type Role} from '@/lib/auth';import {AppShell} from '@/components/app-shell';import {roleLabel} from '@/lib/utils';
-const sections=[['conceitos','Como o sistema funciona'],['ciclo','Editar, excluir e arquivar'],['perfis','Perfis e permissões'],['inicio','Primeiros passos'],['empresas','Empresas e unidades'],['usuarios','Usuários'],['projetos','Projetos'],['modelos','Modelos'],['inspecoes','Inspeções'],['evidencias','Fotos, áudios e vídeos'],['revisao','Revisão e não conformidades'],['relatorios','Relatórios'],['seguranca','Segurança e suporte']];
-const permissions:{role:Role;scope:string;values:boolean[]}[]=[{role:'SUPER_ADMIN',scope:'Toda a plataforma e todas as empresas',values:[true,true,true,true,true,true,true,true,true]},{role:'SUPERVISOR',scope:'Somente a empresa à qual pertence',values:[true,true,true,true,true,true,true,true,false]},{role:'INSPECTOR',scope:'Somente inspeções atribuídas a ele',values:[false,false,false,true,true,false,true,false,false]}];
-const columns=['Usuários','Projetos','Modelos: editar','Executar inspeção','Enviar evidências','Revisar/aprovar','Relatórios','Unidades','Empresas'];
-export default async function Help(){const user=await currentUser();if(!user)redirect('/login');return <AppShell user={user} active="help"><header className="topbar"><div><div className="eyebrow">Manual operacional</div><h1 className="title">Central de ajuda</h1></div><span className="badge success"><ShieldCheck size={13}/>{roleLabel(user.role)}</span></header><div className="notice"><Info size={17}/><span>Você está conectado como <b>{roleLabel(user.role)}</b>. As orientações abaixo identificam o que seu perfil pode executar.</span></div><div className="help-layout"><aside className="card help-nav">{sections.map(([id,label])=><a href={`#${id}`} key={id}>{label}</a>)}</aside><div className="help-content">
-<HelpSection id="conceitos" title="Como o sistema se organiza" intro="O Gaya separa estrutura, planejamento, execução e comprovação. Essa divisão evita cadastros duplicados, protege dados entre clientes e mantém toda inspeção rastreável do início ao relatório.">
-  <div className="system-flow" aria-label="Fluxo de dados do sistema">
-    <div className="system-flow-node primary"><b>1. Empresa</b><span>Limite de segurança e propriedade dos dados</span></div>
-    <div className="system-flow-branches"><span>Unidades</span><span>Usuários</span><span>Projetos</span><span>Modelos</span></div>
-    <div className="system-flow-node"><b>2. Inspeção</b><span>Execução de um modelo em uma unidade, por uma pessoa e dentro de um projeto</span></div>
-    <div className="system-flow-branches"><span>Respostas</span><span>Evidências</span><span>Histórico</span></div>
-    <div className="system-flow-node final"><b>3. Resultado</b><span>Não conformidades, aprovação, auditoria e relatório PDF</span></div>
-  </div>
-  <div className="concept-grid">
-    <Concept number="01" title="Empresa" why="Existe para separar clientes, contratos e dados. Tudo que é operacional pertence a uma empresa, impedindo que um cliente visualize informações de outro." relation="Contém unidades, usuários, projetos, modelos e inspeções. Somente o Super Admin cria ou desativa empresas."/>
-    <Concept number="02" title="Unidade" why="Representa o local físico ou operacional onde o trabalho acontece: filial, fábrica, centro de distribuição, loja ou obra." relation="Pertence a uma empresa e é escolhida em projetos e inspeções. Supervisores administram somente unidades da própria empresa."/>
-    <Concept number="03" title="Usuário e perfil" why="Define quem executa ou governa cada etapa. A identidade individual preserva autoria, responsabilidade e trilha de auditoria." relation="Super Admin governa clientes; Supervisor administra sua operação; Inspetor executa apenas as inspeções atribuídas."/>
-    <Concept number="04" title="Projeto" why="Agrupa um programa, contrato, operação ou ciclo de trabalho que pode gerar várias inspeções ao longo do tempo." relation="Pertence a uma empresa, pode ter unidade principal e gestor, e reúne inspeções relacionadas sem alterar o roteiro técnico."/>
-    <Concept number="05" title="Modelo" why="É o roteiro reutilizável. Centraliza perguntas, orientação, criticidade, resposta esperada e evidências obrigatórias para padronizar a avaliação." relation="Um modelo publicado pode originar várias inspeções. Cada inspeção preserva a versão usada para não perder contexto histórico."/>
-    <Concept number="06" title="Inspeção" why="É a ocorrência real do trabalho: uma aplicação do modelo, em uma unidade, com datas, responsável, prioridade e ciclo de aprovação." relation="Recebe respostas e evidências item a item. Seu progresso só avança quando todos os requisitos obrigatórios são atendidos."/>
-    <Concept number="07" title="Resposta e evidência" why="A resposta registra a conclusão técnica; foto, áudio e vídeo comprovam o que foi observado. Revisões anteriores nunca são apagadas." relation="Cada salvamento gera histórico. Evidências ficam protegidas e vinculadas à inspeção, ao item, à resposta e ao autor."/>
-    <Concept number="08" title="Não conformidade" why="Transforma um desvio em trabalho acompanhável, com severidade, responsável, prazo e plano de ação." relation="É aberta quando a resposta diverge do esperado e permanece vinculada ao item que originou o problema."/>
-    <Concept number="09" title="Revisão e aprovação" why="Separa quem executa de quem valida. Isso reduz aprovação indevida e permite devolver a inspeção para ajustes sem perder o histórico." relation="Com 100% de progresso, o Inspetor envia para revisão; o Supervisor solicita ajustes ou aprova."/>
-    <Concept number="10" title="Relatório e auditoria" why="Consolida a evidência do serviço e registra quem fez cada ação, quando e em qual contexto." relation="O PDF usa os dados atuais autorizados. A auditoria preserva cadastros, respostas, uploads, revisões e mudanças de status."/>
-  </div>
-  <div className="help-tip"><b>Regra prática:</b> a empresa responde “de quem são os dados”; a unidade, “onde”; o projeto, “em qual programa”; o modelo, “o que verificar”; a inspeção, “quando e por quem”; e o relatório, “qual foi o resultado comprovado”.</div>
-</HelpSection>
-<HelpSection id="perfis" title="Perfis e permissões" intro="Toda autorização é validada no servidor. Ocultar um botão não substitui as regras de acesso: a API também impede operações fora do perfil ou da empresa."><div className="permission-wrap"><table className="permission-table"><thead><tr><th>PERFIL / ESCOPO</th>{columns.map(x=><th key={x}>{x}</th>)}</tr></thead><tbody>{permissions.map(row=><tr key={row.role} className={row.role===user.role?'current-role':''}><td><b>{roleLabel(row.role)}</b><div className="muted">{row.scope}</div></td>{row.values.map((allowed,index)=><td key={columns[index]} className={allowed?'permission-yes':'permission-no'}>{allowed?<><Check size={14}/> Sim</>:<><X size={14}/> Não</>}</td>)}</tr>)}</tbody></table></div><div className="help-tip"><b>Supervisor:</b> pode cadastrar e editar usuários e unidades da própria empresa, além de administrar projetos, modelos e inspeções. Não pode criar empresas, criar Super Admin nem acessar dados de outro cliente.</div></HelpSection>
-<HelpSection id="inicio" title="Primeiros passos" intro="Use esta sequência para preparar um ciclo completo de inspeção."><Steps items={[['Entre com sua conta','Acesse a tela de login. Após autenticar, a Visão geral mostra apenas dados permitidos ao seu perfil.'],['Confirme a equipe','Supervisor ou Super Admin acessa Usuários e cadastra os responsáveis.'],['Organize o trabalho','Crie um Projeto para agrupar unidade, gestor e inspeções relacionadas.'],['Prepare o roteiro','Crie ou abra um Modelo, adicione itens e publique-o.'],['Programe e execute','Crie a inspeção, atribua um inspetor e acompanhe até aprovação.']]}/></HelpSection>
-<HelpSection id="empresas" title="Cadastro de empresas e unidades" intro="Empresas são administradas exclusivamente pelo Super Admin. Unidades podem ser cadastradas pelo Super Admin ou pelo Supervisor dentro do seu próprio escopo."><Steps items={[['Cadastre a empresa','Como Super Admin, abra Empresas, clique em Nova empresa e informe razão social, nome fantasia e documento.'],['Crie a unidade inicial','O cadastro da empresa exige uma primeira unidade para permitir projetos e inspeções imediatamente.'],['Adicione outras unidades','Use Unidades no menu ou o detalhe da empresa para cadastrar filiais, plantas e locais operacionais com código próprio.'],['Administre como Supervisor','O Supervisor acessa Unidades e pode criar ou editar apenas locais pertencentes à sua empresa. Ele não cria empresas nem acessa outros clientes.'],['Use nos fluxos','Unidades ativas aparecem na criação de projetos e inspeções; empresas ativas aparecem para o Super Admin ao cadastrar usuários e modelos.']]}/></HelpSection>
-<HelpSection id="usuarios" title="Cadastro de usuários" intro="Disponível para Supervisor e Super Admin."><Steps items={[['Abra Usuários','No menu lateral, selecione Usuários e clique em Novo usuário.'],['Preencha a conta','Informe nome, e-mail único, senha inicial com ao menos 8 caracteres, letra e número, e escolha o perfil.'],['Defina o perfil','Supervisor cria Supervisor ou Inspetor da própria empresa. Super Admin também pode criar Super Admin.'],['Edite ou bloqueie','Clique em uma pessoa da lista para alterar nome, perfil, status ou definir uma nova senha. Sua própria conta não pode ser desativada.'],['Entregue o acesso com segurança','Envie a senha inicial por canal seguro e oriente a troca operacional da credencial.']]}/></HelpSection>
-<HelpSection id="projetos" title="Cadastro e acompanhamento de projetos" intro="Projetos organizam inspeções por operação, unidade, período e gestor."><Steps items={[['Crie o projeto','Acesse Projetos, clique em Novo projeto e informe código único, nome e descrição.'],['Defina governança','Selecione unidade principal, gestor, data de início e previsão de término.'],['Vincule inspeções','Na criação de uma inspeção, escolha o projeto; também é possível usar Nova inspeção dentro do detalhe do projeto.'],['Acompanhe o histórico','No detalhe do projeto, consulte progresso e abra todas as inspeções vinculadas.'],['Atualize o ciclo','Use Planejamento, Ativo, Pausado, Concluído ou Arquivado conforme a situação real.']]}/></HelpSection>
-<HelpSection id="modelos" title="Modelos de inspeção" intro="Inspetores consultam modelos; Supervisores e Super Admin criam e mantêm roteiros."><Steps items={[['Crie o cabeçalho','Em Modelos, clique em Novo modelo, informe nome, categoria, descrição e status.'],['Adicione verificações','No detalhe, informe área, seção, código, pergunta, orientação e criticidade.'],['Defina a resposta esperada','Escolha Sim, Não ou Não se aplica. A comparação automática determina a conformidade.'],['Exija evidências quando necessário','Marque Foto e/ou Áudio obrigatório. O item só entra no progresso válido após receber a evidência.'],['Publique o modelo','Mude o status para Publicado. Apenas modelos publicados aparecem na criação de inspeções.']]}/></HelpSection>
-<HelpSection id="inspecoes" title="Planejar e executar uma inspeção" intro="Supervisor programa e revisa; o Inspetor executa somente as inspeções atribuídas a ele."><Steps items={[['Crie e atribua','Em Inspeções, clique em Nova inspeção; selecione projeto, unidade, modelo, inspetor, prioridade e datas.'],['Inicie a execução','Abra o detalhe e clique em Iniciar. O sistema registra uma sessão e a trilha de auditoria.'],['Responda cada item','Selecione a resposta, descreva a constatação e anexe as evidências necessárias antes de Salvar item.'],['Observe o progresso válido','O percentual considera resposta atual e também foto/áudio obrigatório. Itens incompletos ficam sinalizados.'],['Envie para revisão','Ao atingir 100%, clique em Enviar para revisão. O roteiro é bloqueado enquanto o Supervisor analisa.']]}/></HelpSection>
-<HelpSection id="evidencias" title="Fotos, áudios e vídeos" intro="Os arquivos ficam no armazenamento persistente do servidor e o acesso exige login e autorização para a inspeção."><Steps items={[['Tire ou envie uma foto','Toque em Foto. No celular, escolha a câmera traseira ou um arquivo existente; confira o nome antes de salvar.'],['Grave áudio no navegador','Toque em Gravar áudio, permita o microfone e fale. O cronômetro confirma a captura; toque em Parar para ouvir antes do envio.'],['Grave vídeo no celular','Toque em Gravar vídeo e permita câmera e microfone. A câmera traseira é priorizada. Pare a captura e assista à prévia.'],['Use o envio alternativo','Se o navegador não oferecer gravação direta, toque em Enviar e escolha um áudio ou vídeo já gravado no aparelho.'],['Remova e refaça quando preciso','Use o botão de lixeira ao lado do arquivo para descartar a captura e gravar novamente antes de Salvar item.'],['Respeite os limites','Foto: 15 MB; áudio: 50 MB; vídeo: 300 MB. Use formatos compatíveis com o navegador e o tipo correto.'],['Salve e visualize','O upload ocorre junto da resposta. Após a confirmação, os anexos aparecem abaixo do item e aceitam reprodução com linha do tempo.']]}/><div className="help-tip"><b>Permissão no celular:</b> câmera e microfone precisam estar liberados para este domínio e a página deve usar HTTPS. Se o arquivo for grande, aguarde o término da requisição antes de sair.</div></HelpSection>
-<HelpSection id="revisao" title="Revisão, aprovação e não conformidades" intro="Respostas diferentes do esperado geram uma não conformidade aberta sem duplicar registros do mesmo item."><Steps items={[['Receba para revisão','O Supervisor abre a inspeção com status Em revisão.'],['Analise conteúdo e evidências','Confira respostas, comentários, anexos, criticidade e a lista de Não conformidades.'],['Solicite ajustes','Clique em Solicitar ajustes. O inspetor retoma o roteiro, corrige e envia novamente.'],['Aprove','Quando tudo estiver correto, clique em Aprovar. A inspeção fica bloqueada contra alterações posteriores.'],['Acompanhe pendências','Use Não conformidades para priorizar itens críticos, responsável, prazo e plano de ação.']]}/></HelpSection>
-<HelpSection id="relatorios" title="Relatórios e rastreabilidade" intro="O PDF é gerado sob demanda com dados atuais autorizados para o perfil."><Steps items={[['Abra Relatórios','A lista segue o escopo: empresa para Supervisor e atribuições para Inspetor.'],['Baixe o PDF','Clique em Baixar ou use Relatório PDF no detalhe da inspeção.'],['Confira o conteúdo','Valide identificação, unidade, respostas, conformidade, não conformidades e datas.'],['Use a auditoria','Criação, edição, respostas, uploads e mudanças de status são registradas para rastreabilidade.']]}/></HelpSection>
-<HelpSection id="seguranca" title="Segurança, privacidade e solução de problemas" intro="Nunca compartilhe sua sessão ou senha. Os dados são isolados por empresa e as rotas sensíveis exigem autenticação."><Steps items={[['Erro de permissão','Confirme se a conta pertence à empresa correta e se a inspeção foi atribuída ao inspetor conectado.'],['Upload recusado','Verifique tipo e tamanho. Renomear a extensão não converte o arquivo; exporte novamente em formato adequado.'],['Progresso não chega a 100%','Procure etiquetas amarelas de Foto obrigatória ou Áudio obrigatório e salve a evidência faltante.'],['Modelo não aparece','Confirme se está Publicado e pertence à mesma empresa da unidade.'],['Sessão expirada','Faça login novamente. Sessões expiram após 12 horas por segurança.']]}/><div className="help-tip">Consulte também <a href="/privacidade"><b>Política de Privacidade</b></a> e <a href="/termos"><b>Termos de Uso</b></a>. Em falha persistente, registre horário, tela, inspeção e mensagem exibida para o suporte técnico.</div></HelpSection>
-<HelpSection id="ciclo" title="Editar, excluir, arquivar ou desativar" intro="Todo cadastro editável possui uma ação de ciclo de vida. O sistema nunca apaga silenciosamente informações que já participam de uma inspeção, evidência, aprovação ou relatório."><Steps items={[["Edite pelo detalhe","Abra o cartão ou a linha do cadastro e use Salvar alterações. Nos itens de modelo, clique em Editar no próprio cartão."],["Exclua itens do modelo","Use Excluir no item. Ele sai imediatamente das próximas inspeções, mas continua congelado nas inspeções e PDFs que já existiam."],["Arquive planejamento","Projetos e modelos são arquivados. Eles deixam de aceitar novos vínculos, porém consultas e registros antigos permanecem disponíveis."],["Desative acessos e estrutura","Usuários, unidades e empresas são desativados. Isso impede novos usos sem perder autoria, vínculos ou rastreabilidade."],["Cancele ou rejeite operações","Inspeções são canceladas e não conformidades podem ser rejeitadas. A ação, o autor, a data e os valores anteriores ficam na auditoria."],["Reative quando permitido","Abra o detalhe e altere novamente o status para ativo, rascunho ou publicado. Exclusões que afetem obrigações legais ou evidências não são físicas."]]}/><div className="help-tip"><b>Por que não apagar definitivamente?</b> Uma inspeção precisa continuar mostrando exatamente o roteiro usado no dia da execução. Essa imutabilidade protege o cliente, o responsável técnico e a validade do relatório.</div></HelpSection>
-</div></div></AppShell>}
-function HelpSection({id,title,intro,children}:{id:string;title:string;intro:string;children:React.ReactNode}){return <section id={id} className="card help-section"><h2>{title}</h2><p>{intro}</p>{children}</section>}
-function Steps({items}:{items:[string,string][]}){return <div className="step-list">{items.map(([title,text])=><div className="step" key={title}><div><h3>{title}</h3><p>{text}</p></div></div>)}</div>}
-function Concept({number,title,why,relation}:{number:string;title:string;why:string;relation:string}){return <article className="concept-card"><span>{number}</span><div><h3>{title}</h3><p>{why}</p><small><b>Como se conecta:</b> {relation}</small></div></article>}
+import Link from 'next/link';
+import {redirect} from 'next/navigation';
+import {Info,ShieldCheck} from 'lucide-react';
+import {currentUser} from '@/lib/auth';
+import {AppShell} from '@/components/app-shell';
+import {roleLabel} from '@/lib/utils';
+
+export default async function Help(){
+  const user=await currentUser();if(!user)redirect('/login');
+  const coordinates=user.role!=='INSPECTOR';
+  const sections=[['inicio','Primeiros passos'],['unidades','Unidades e acessos'],['calendario','Calendário de Visitas'],['preenchimento','Preencher uma visita'],['evidencias','Fotos e áudio'],['revisao','Revisão e correções'],...(coordinates?[['enviados','Relatórios Enviados'],['mensais','Relatórios Mensais'],['planos','Planos de Ação']]:[]),['seguranca','Segurança e suporte']];
+  return <AppShell user={user} active="help">
+    <header className="topbar"><div><div className="eyebrow">Manual operacional</div><h1 className="title">Central de ajuda</h1></div><span className="badge success"><ShieldCheck size={13}/>{roleLabel(user.role)}</span></header>
+    <div className="notice"><Info size={17}/><span>Você está conectado como <b>{roleLabel(user.role)}</b>. A coordenação organiza e revisa; o Responsável Técnico registra as visitas das suas unidades.</span></div>
+    <div className="help-layout"><aside className="card help-nav">{sections.map(([id,label])=><a href={`#${id}`} key={id}>{label}</a>)}</aside><div className="help-content">
+      <HelpSection id="inicio" title="Primeiros passos" intro="O trabalho acompanha o ciclo da visita: planejamento, preenchimento, revisão e envio ao cliente.">
+        <Steps items={coordinates?[
+          ['Confira as unidades','Abra Unidades e revise o responsável técnico, endereço, contato e links. O responsável deve estar vinculado a um usuário.'],
+          ['Monte a agenda','No Calendário de Visitas, programe as visitas de cada unidade.'],
+          ['Revise o que chegou','Em Relatórios Recebidos, use Examinar para conferir e aprovar as partes preenchidas pelo RT.'],
+          ['Envie e acompanhe','Baixe o PDF aprovado, envie pelo canal combinado e registre o envio. Relatórios Mensais consolida indicadores e parecer; Planos de Ação acompanha as medidas e verificações.'],
+        ]:[
+          ['Consulte sua agenda','Confira as visitas das suas unidades no Calendário de Visitas.'],
+          ['Abra o relatório','Em Meus relatórios, clique em Novo relatório e escolha a unidade e a data da visita.'],
+          ['Preencha as partes visitadas','Escolha um departamento, responda uma pergunta por vez e salve. Uma visita pode preencher somente a fração do checklist realizada naquele dia.'],
+          ['Envie para revisão','Ao terminar a visita, envie as partes preenchidas ao coordenador e acompanhe eventuais solicitações de correção.'],
+        ]}/>
+      </HelpSection>
+      <HelpSection id="unidades" title="Unidades e acessos" intro="Cada unidade tem código, responsável técnico, endereço, Google Maps, ponto de contato, e-mail, telefone e formulário virtual.">
+        <Steps items={[
+          ['Consulta do RT','O Responsável Técnico consulta somente as unidades vinculadas ao seu usuário, sem editar cadastros ou a agenda.'],
+          ['Edição da coordenação','O Coordenador pode adicionar e editar unidades da sua empresa. Escolha o responsável na lista de usuários; não é um campo de texto livre.'],
+          ['Ative os acessos reais','Em Usuários, a coordenação completa o e-mail definitivo e a senha dos responsáveis importados antes de ativar as contas. Uma conta inativa não entra no aplicativo.'],
+          ['Preserve o histórico','Desativar uma unidade ou um usuário impede novos usos, preservando relatórios, vínculos e autoria.'],
+        ]}/>
+      </HelpSection>
+      <HelpSection id="calendario" title="Calendário de Visitas" intro="A coordenação monta a programação. O RT visualiza somente as visitas das suas unidades. Todos os horários seguem Brasília.">
+        <Steps items={[
+          ['Escolha a visualização','Use Mês ou Semana, Hoje, setas e filtros de unidade.'],
+          ['Programe uma visita','Como coordenador, clique em Criar visita ou em um dia. Informe unidade, data, início, término e observações. O responsável vem do cadastro da unidade.'],
+          ['Repita semanalmente','Marque a recorrência e escolha uma data final, por até um ano.'],
+          ['Ajuste uma ocorrência','Clique em uma visita para editar ou cancelar. A alteração vale para aquela ocorrência e preserva o histórico. O RT abre os detalhes somente para consulta.'],
+          ['Inicie o relatório','No detalhe da visita, o atalho para o relatório já seleciona unidade e data.'],
+        ]}/>
+      </HelpSection>
+      <HelpSection id="preenchimento" title="Preencher uma visita" intro="O checklist é compartilhado entre as unidades. As visitas semanais verificam partes do roteiro; a cobertura mensal reúne os itens verificados ao longo do mês.">
+        <Steps items={[
+          ['Documentação','Registre se o documento está presente e vigente. Quando Sim, informe a disponibilização física ou digital e o vencimento. Periodicidade e quantidade de exemplares seguem o roteiro.'],
+          ['Verificação técnica','Escolha o departamento e responda uma pergunta por vez. Salvar e continuar avança; anterior e próximo permitem conferir as respostas. Perguntas condicionais aparecem conforme a resposta anterior.'],
+          ['Plano de ação','Para o setor visitado, registre não conformidades, medidas imediatas, ações corretivas, ações preventivas e responsáveis.'],
+          ['Verifique planos anteriores','Confira os planos aprovados em visitas anteriores da mesma unidade e registre conclusão Sim/Não e observação.'],
+          ['Envie as partes realizadas','Não é necessário preencher todo o checklist em uma única visita. O relatório enviado apresenta somente as seções preenchidas.'],
+        ]}/>
+      </HelpSection>
+      <HelpSection id="evidencias" title="Fotos e áudio" intro="Fotos, áudio e observações são opcionais nos relatórios de visita. Confira o texto transcrito antes de salvar a resposta.">
+        <Steps items={[
+          ['Adicione uma foto','Escolha a câmera ou um arquivo. JPEG e PNG entram no PDF; outras fotos compatíveis são convertidas para JPEG. Limite por foto: 15 MB.'],
+          ['Grave ou envie áudio','Use Gravar áudio e permita o microfone quando solicitado, ou envie um arquivo existente. Pare a gravação e ouça a prévia. Limite por áudio: 50 MB.'],
+          ['Revise a transcrição','Aguarde a transcrição automática nas observações e corrija o que precisar. Se falhar, mantenha o áudio e digite o texto.'],
+          ['Salve a resposta','Os anexos são enviados com o salvamento do item. Confira a confirmação e a visualização dos arquivos antes de sair.'],
+        ]}/>
+      </HelpSection>
+      <HelpSection id="revisao" title="Revisão e correções" intro="O Coordenador examina somente as partes preenchidas da visita e aprova ou reprova cada seção.">
+        <Steps items={[
+          ['Recebimento e prazo','O envio pelo RT registra o recebimento e a data limite de dois dias úteis, de segunda a sexta-feira. Uma devolução não reinicia esse prazo.'],
+          ['Examine as seções','Em Relatórios Recebidos, clique em Examinar. Durante a revisão, a coordenação pode editar as respostas e conferir fotos e observações.'],
+          ['Aprove ou solicite correção','Aprove cada seção conferida ou reprove com um motivo. A devolução fica visível ao RT.'],
+          ['Corrija e reenvie','O RT pode corrigir as seções devolvidas; as seções aprovadas permanecem bloqueadas. O histórico conserva os salvamentos e revisões.'],
+        ]}/>
+      </HelpSection>
+      {coordinates&&<>
+        <HelpSection id="enviados" title="Relatórios Enviados" intro="Depois de aprovar todas as seções, baixe o PDF e envie ao cliente pelo canal combinado.">
+          <Steps items={[
+            ['Confira o PDF','O arquivo contém os campos preenchidos, planos e fotos da visita.'],
+            ['Registre o envio realizado','Informe data e destinatário somente depois de enviar. Esse registro não dispara e-mail.'],
+            ['Consulte e filtre','Relatórios Enviados apresenta código da unidade, data, autor RT e arquivo para download. O PDF do envio fica preservado.'],
+          ]}/>
+        </HelpSection>
+        <HelpSection id="mensais" title="Relatórios Mensais" intro="A coordenação entra nesta tela após o login. Selecione o mês da visita e todas as unidades ou uma unidade específica.">
+          <Steps items={[
+            ['Confira os quatro blocos','Indicadores consolidados, matriz comparativa das unidades, Pareto dos principais motivos de não conformidade e conclusão técnica.'],
+            ['Leia a base de cálculo','Os indicadores executivos usam relatórios aprovados. Sem avaliações, a tela mostra Sem dados. A cobertura informa quanto do checklist foi verificado.'],
+            ['Compare as unidades','Ordene a matriz e confira IGC, variação em pontos percentuais, documentação pendente e resolução de planos. Os destaques indicam os extremos do mês.'],
+            ['Revise o parecer','Confira a síntese automática e salve sua revisão. Mudanças nos dados exigem nova revisão do texto.'],
+            ['Baixe o PDF mensal','O PDF reúne os quatro blocos executivos. O acompanhamento operacional expansível permite abrir os relatórios que compõem o período.'],
+          ]}/>
+        </HelpSection>
+        <HelpSection id="planos" title="Planos de Ação" intro="Acompanhe os planos aprovados das visitas por mês, unidade e situação.">
+          <Steps items={[
+            ['Consulte o plano','Confira os cinco campos e abra o relatório de origem.'],
+            ['Acompanhe a verificação','A conclusão considera a última verificação aprovada de uma visita posterior da mesma unidade.'],
+          ]}/>
+        </HelpSection>
+      </>}
+      <HelpSection id="seguranca" title="Segurança e suporte" intro="Os acessos e arquivos respeitam a empresa, unidade e autoria de cada relatório.">
+        <Steps items={[
+          ['Acesso negado','Confira o perfil, a empresa e o responsável vinculado à unidade.'],
+          ['Arquivo recusado','Verifique formato e tamanho. Renomear a extensão não converte o arquivo.'],
+          ['Sessão expirada','Entre novamente; sessões expiram após 12 horas.'],
+          ['Solicite suporte','Anote a tela, unidade, horário e mensagem de erro. Não compartilhe sua senha.'],
+        ]}/>
+        <p className="help-tip">Consulte <Link href="/privacidade">Privacidade</Link> e <Link href="/termos">Termos de Uso</Link>.</p>
+        {user.role==='SUPER_ADMIN'&&<p className="help-tip">A administração também mantém Empresas, Modelos, Projetos e os registros de inspeções anteriores.</p>}
+      </HelpSection>
+    </div></div>
+  </AppShell>;
+}
+function HelpSection({id,title,intro,children}:{id:string;title:string;intro:string;children:React.ReactNode}){return <section id={id} className="card help-section"><h2>{title}</h2><p>{intro}</p>{children}</section>;}
+function Steps({items}:{items:[string,string][]}){return <div className="step-list">{items.map(([title,text])=><div className="step" key={title}><div><h3>{title}</h3><p>{text}</p></div></div>)}</div>;}

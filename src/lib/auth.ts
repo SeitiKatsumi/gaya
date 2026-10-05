@@ -2,8 +2,10 @@ import {SignJWT,jwtVerify} from 'jose';
 import {cookies} from 'next/headers';
 import {db} from './db';
 
+// ponytail: preserve stored role codes; operational labels are Coordenador and Responsável técnico.
 export type Role='SUPER_ADMIN'|'SUPERVISOR'|'INSPECTOR';
 export type SessionUser={id:string;company_id:string|null;name:string;email:string;role:Role};
+export function homePath(user:SessionUser){return user.role==='INSPECTOR'?'/relatorios':'/relatorios-mensais';}
 const key=()=>new TextEncoder().encode(process.env.SESSION_SECRET||'development-secret-change-me-at-least-32');
 
 export async function createToken(user:SessionUser){return new SignJWT({...user}).setProtectedHeader({alg:'HS256'}).setIssuedAt().setExpirationTime('12h').sign(key())}

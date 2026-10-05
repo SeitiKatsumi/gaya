@@ -14,12 +14,12 @@ export default async function UserDetails({params,searchParams}:{params:Promise<
   const query=await searchParams;
   return <AppShell user={current} active="users"><header className="topbar"><div><div className="eyebrow">{row.trade_name||'Plataforma Gaya'}</div><h1 className="title">Detalhes do usuário</h1></div></header>
     <form className="card form-card" action={`/api/users/${row.id}`} method="post">
-      {query.ok&&<div className="notice success-notice">Usuário atualizado com sucesso.</div>}{query.erro&&<div className="error">Não foi possível atualizar. Revise os campos.</div>}
+      {query.ok&&<div className="notice success-notice">Usuário atualizado com sucesso.</div>}{query.erro&&<div className="error">{query.erro==='email'?'Este e-mail já está associado a outro usuário.':query.erro==='ativacao'?'Para ativar o RT importado, informe seu e-mail real e defina uma senha.':'Não foi possível atualizar. Revise os campos.'}</div>}{row.email.endsWith('.invalid')&&<p className="notice">Responsável importado da planilha. Complete o e-mail e a senha para liberar o acesso.</p>}
       <div className="grid form-grid">
         <div className="field field-wide"><label>NOME COMPLETO</label><input name="name" required minLength={3} defaultValue={row.name}/></div>
-        <div className="field"><label>E-MAIL</label><input type="email" value={row.email} disabled/><small className="muted">O e-mail identifica a conta e não pode ser alterado.</small></div>
+        <div className="field"><label htmlFor="user-email">E-MAIL</label><input id="user-email" name="email" type="email" required defaultValue={row.email}/><small className="muted">Este é o e-mail utilizado para entrar no aplicativo.</small></div>
         <div className="field"><label>NOVA SENHA</label><input name="password" type="password" minLength={8} placeholder="Deixe em branco para manter" autoComplete="new-password"/></div>
-        <div className="field"><label>NÍVEL DE ACESSO</label><select name="role" defaultValue={row.role}><option value="INSPECTOR">Inspetor</option><option value="SUPERVISOR">Supervisor</option>{current.role==='SUPER_ADMIN'&&<option value="SUPER_ADMIN">Super Admin</option>}</select></div>
+        <div className="field"><label>NÍVEL DE ACESSO</label><select name="role" defaultValue={row.role}><option value="INSPECTOR">Responsável técnico</option><option value="SUPERVISOR">Coordenador</option>{current.role==='SUPER_ADMIN'&&<option value="SUPER_ADMIN">Super Admin</option>}</select></div>
         <div className="field"><label>STATUS</label><select name="active" defaultValue={String(row.active)} disabled={row.id===current.id}><option value="1">Ativo</option><option value="0">Inativo</option></select>{row.id===current.id&&<><input type="hidden" name="active" value="1"/><small className="muted">Sua própria conta não pode ser desativada.</small></>}</div>
       </div>
       <div className="form-actions"><Link className="btn btn-ghost" href="/usuarios">Voltar</Link><button className="btn btn-primary">Salvar alterações</button></div>

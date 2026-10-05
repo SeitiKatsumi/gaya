@@ -16,6 +16,8 @@ export function migrate() {
   CREATE TABLE IF NOT EXISTS migrations (id INTEGER PRIMARY KEY, name TEXT NOT NULL UNIQUE, applied_at TEXT DEFAULT CURRENT_TIMESTAMP);
   CREATE TABLE IF NOT EXISTS companies (id TEXT PRIMARY KEY, legal_name TEXT NOT NULL, trade_name TEXT NOT NULL, document TEXT, colors TEXT, active INTEGER DEFAULT 1, created_at TEXT DEFAULT CURRENT_TIMESTAMP);
   CREATE TABLE IF NOT EXISTS units (id TEXT PRIMARY KEY, company_id TEXT NOT NULL REFERENCES companies(id), name TEXT NOT NULL, code TEXT NOT NULL, address TEXT, city TEXT, state TEXT, active INTEGER DEFAULT 1, UNIQUE(company_id, code));
+  CREATE TABLE IF NOT EXISTS visits (id TEXT PRIMARY KEY, unit_id TEXT NOT NULL REFERENCES units(id), visit_date TEXT NOT NULL, start_time TEXT NOT NULL, end_time TEXT NOT NULL, notes TEXT NOT NULL DEFAULT '', series_id TEXT, status TEXT NOT NULL DEFAULT 'SCHEDULED' CHECK(status IN ('SCHEDULED','CANCELLED')), created_by TEXT REFERENCES users(id), created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT DEFAULT CURRENT_TIMESTAMP, CHECK(start_time<end_time));
+  CREATE INDEX IF NOT EXISTS idx_visits_date ON visits(visit_date,status,unit_id);
   CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, company_id TEXT REFERENCES companies(id), name TEXT NOT NULL, email TEXT NOT NULL UNIQUE, password_hash TEXT NOT NULL, role TEXT NOT NULL CHECK(role IN ('SUPER_ADMIN','SUPERVISOR','INSPECTOR')), active INTEGER DEFAULT 1, created_at TEXT DEFAULT CURRENT_TIMESTAMP);
   CREATE TABLE IF NOT EXISTS projects (id TEXT PRIMARY KEY, company_id TEXT NOT NULL REFERENCES companies(id), unit_id TEXT REFERENCES units(id), code TEXT NOT NULL, name TEXT NOT NULL, description TEXT, status TEXT NOT NULL DEFAULT 'ACTIVE' CHECK(status IN ('PLANNING','ACTIVE','PAUSED','COMPLETED','ARCHIVED')), manager_id TEXT REFERENCES users(id), start_date TEXT, end_date TEXT, created_by TEXT REFERENCES users(id), created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT DEFAULT CURRENT_TIMESTAMP, UNIQUE(company_id, code));
   CREATE TABLE IF NOT EXISTS templates (id TEXT PRIMARY KEY, company_id TEXT REFERENCES companies(id), name TEXT NOT NULL, category TEXT, description TEXT, version INTEGER DEFAULT 1, status TEXT DEFAULT 'PUBLISHED', owner_id TEXT REFERENCES users(id), is_global INTEGER DEFAULT 0, created_at TEXT DEFAULT CURRENT_TIMESTAMP);
@@ -28,13 +30,27 @@ export function migrate() {
   CREATE TABLE IF NOT EXISTS reports (id TEXT PRIMARY KEY, inspection_id TEXT NOT NULL REFERENCES inspections(id), version INTEGER DEFAULT 1, path TEXT NOT NULL, status TEXT DEFAULT 'PUBLISHED', generated_by TEXT REFERENCES users(id), created_at TEXT DEFAULT CURRENT_TIMESTAMP);
   CREATE TABLE IF NOT EXISTS notifications (id TEXT PRIMARY KEY, user_id TEXT NOT NULL REFERENCES users(id), title TEXT NOT NULL, body TEXT, read_at TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP);
   CREATE TABLE IF NOT EXISTS audit_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id TEXT REFERENCES users(id), company_id TEXT, inspection_id TEXT, action TEXT NOT NULL, entity_type TEXT, entity_id TEXT, old_value TEXT, new_value TEXT, origin TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP);
+  CREATE TABLE IF NOT EXISTS report_section_reviews (inspection_id TEXT NOT NULL REFERENCES inspections(id), section TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'PENDING' CHECK(status IN ('PENDING','APPROVED','REJECTED')), note TEXT NOT NULL DEFAULT '', reviewed_by TEXT REFERENCES users(id), reviewed_at TEXT, PRIMARY KEY(inspection_id,section));
+  CREATE TABLE IF NOT EXISTS monthly_reviews (scope_key TEXT NOT NULL, month TEXT NOT NULL, company_id TEXT REFERENCES companies(id), text TEXT NOT NULL, source_hash TEXT NOT NULL, reviewed_by TEXT NOT NULL REFERENCES users(id), reviewed_at TEXT NOT NULL, PRIMARY KEY(scope_key,month));
   CREATE INDEX IF NOT EXISTS idx_inspections_company ON inspections(company_id, status); CREATE INDEX IF NOT EXISTS idx_projects_company ON projects(company_id, status); CREATE INDEX IF NOT EXISTS idx_responses_inspection ON responses(inspection_id, item_id, is_current); CREATE INDEX IF NOT EXISTS idx_audit_inspection ON audit_logs(inspection_id, created_at); CREATE INDEX IF NOT EXISTS idx_evidences_inspection ON evidences(inspection_id, item_id);
   `);
+  const unitColumns=db.prepare('PRAGMA table_info(units)').all() as {name:string}[];
+  if(!unitColumns.some(column=>column.name==='responsible_id'))db.exec('ALTER TABLE units ADD COLUMN responsible_id TEXT REFERENCES users(id)');
+  for(const field of ['maps_url','contact_name','contact_email','contact_phones','form_url']){
+    if(!unitColumns.some(column=>column.name===field))db.exec(`ALTER TABLE units ADD COLUMN ${field} TEXT`);
+  }
   const inspectionColumns = db.prepare("PRAGMA table_info(inspections)").all() as {name:string}[];
+  for(const field of ['received_at','send_due_date'])if(!inspectionColumns.some(column=>column.name===field))db.exec(`ALTER TABLE inspections ADD COLUMN ${field} TEXT`);
+  const responseColumns=db.prepare('PRAGMA table_info(responses)').all() as {name:string}[];
+  if(!responseColumns.some(column=>column.name==='details_json'))db.exec('ALTER TABLE responses ADD COLUMN details_json TEXT');
+  const reportColumns=db.prepare('PRAGMA table_info(reports)').all() as {name:string}[];
+  for(const field of ['sent_at','recipient','delivery_method'])if(!reportColumns.some(column=>column.name===field))db.exec(`ALTER TABLE reports ADD COLUMN ${field} TEXT`);
+  db.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_reports_sent ON reports(inspection_id) WHERE status='SENT'");
   if (!inspectionColumns.some((column) => column.name === 'project_id')) {
     db.exec("ALTER TABLE inspections ADD COLUMN project_id TEXT REFERENCES projects(id)");
   }
   const templateItemColumns = db.prepare("PRAGMA table_info(template_items)").all() as {name:string}[];
+  for(const field of ['document_periodicity','document_copies'])if(!templateItemColumns.some(column=>column.name===field))db.exec(`ALTER TABLE template_items ADD COLUMN ${field} TEXT`);
   if (!templateItemColumns.some((column) => column.name === 'active')) {
     db.exec("ALTER TABLE template_items ADD COLUMN active INTEGER NOT NULL DEFAULT 1");
   }

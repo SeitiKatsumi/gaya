@@ -1,0 +1,1126 @@
+{
+  "source": "https://docs.google.com/spreadsheets/d/1TJPJfzveH1usMXqZDD-ki5GBxh0r-VMrL9r4hogffV0/edit",
+  "documents": [
+    {
+      "code": "DOC-01",
+      "group": "Licenças centrais",
+      "title": "AVCB - Auto de Vistoria do Corpo de Bombeiros",
+      "periodicity": "Três anos em São Paulo, um ano nos demais Estados.",
+      "copies": "1"
+    },
+    {
+      "code": "DOC-02",
+      "group": "Licenças centrais",
+      "title": "Contrato de Locação da Unidade",
+      "periodicity": "120 meses em média, mas variável de acordo com o escopo da Unidade.",
+      "copies": "1"
+    },
+    {
+      "code": "DOC-03",
+      "group": "Licenças centrais",
+      "title": "Contrato Social",
+      "periodicity": "Indefinido.",
+      "copies": "1"
+    },
+    {
+      "code": "DOC-04",
+      "group": "Licenças centrais",
+      "title": "Alvará/Licença de Funcionamento",
+      "periodicity": "Anual.",
+      "copies": "1"
+    },
+    {
+      "code": "DOC-05",
+      "group": "Licenças centrais",
+      "title": "Licença/Alvará Sanitária(o) Municipal",
+      "periodicity": "Anual.",
+      "copies": "1"
+    },
+    {
+      "code": "DOC-06",
+      "group": "Licenças centrais",
+      "title": "ART - Certificado de Anotação de Responsabilidade Técnica",
+      "periodicity": "Anual.",
+      "copies": "1"
+    },
+    {
+      "code": "DOC-07",
+      "group": "Licenças centrais",
+      "title": "AFE Correlatos de Saúde",
+      "periodicity": "Permanente (a menos que haja alguma modificação na natureza da operação).",
+      "copies": "1"
+    },
+    {
+      "code": "DOC-08",
+      "group": "Licenças centrais",
+      "title": "AFE Saneantes (Matriz)",
+      "periodicity": "Permanente (a menos que haja alguma modificação na natureza da operação).",
+      "copies": "1"
+    },
+    {
+      "code": "DOC-09",
+      "group": "Licenças centrais",
+      "title": "AFE Cosméticos (Matriz)",
+      "periodicity": "Permanente (a menos que haja alguma modificação na natureza da operação).",
+      "copies": "1"
+    },
+    {
+      "code": "DOC-10",
+      "group": "Licenças centrais",
+      "title": "Licença/Dispensa Ambiental",
+      "periodicity": "Permanente (a menos que haja alguma modificação na natureza da operação).",
+      "copies": "1"
+    },
+    {
+      "code": "DOC-11",
+      "group": "Licenças centrais",
+      "title": "Layout da Operação",
+      "periodicity": "Deve estar aprovado; em caso de mudanças, a parte responsável de qualidade deve comunicar com antecedência o responsável técnico.",
+      "copies": "1"
+    },
+    {
+      "code": "DOC-12",
+      "group": "Licenças centrais",
+      "title": "LTA - Laudo Técnico de Avaliação",
+      "periodicity": "Anual.",
+      "copies": "1"
+    },
+    {
+      "code": "DOC-13",
+      "group": "Licenças centrais",
+      "title": "Manual de Boas Práticas",
+      "periodicity": "Anual.",
+      "copies": "1"
+    },
+    {
+      "code": "DOC-14",
+      "group": "Licenças centrais",
+      "title": "Instruções de Trabalho",
+      "periodicity": "Anual.",
+      "copies": "1"
+    },
+    {
+      "code": "DOC-15",
+      "group": "Licenças centrais",
+      "title": "Certificado de Registro Exército",
+      "periodicity": "Anual.",
+      "copies": "1"
+    },
+    {
+      "code": "DOC-16",
+      "group": "Licenças centrais",
+      "title": "CR do Ibama - Certificado de Regularidade Técnica Ibama",
+      "periodicity": "Trimestral.",
+      "copies": "1"
+    },
+    {
+      "code": "DOC-17",
+      "group": "Controle de pragas",
+      "title": "Certificado de Controle de Pragas",
+      "periodicity": "Mensal.",
+      "copies": "3"
+    },
+    {
+      "code": "DOC-18",
+      "group": "Controle de pragas",
+      "title": "Alvará de Funcionamento da Empresa Responsável pelo Controle de Pragas",
+      "periodicity": "Três anos em São Paulo, um ano nos demais Estados.",
+      "copies": "1"
+    },
+    {
+      "code": "DOC-19",
+      "group": "Controle de pragas",
+      "title": "Licença Sanitária a Empresa Responsável pelo Controle de Pragas",
+      "periodicity": "Anual.",
+      "copies": "1"
+    },
+    {
+      "code": "DOC-20",
+      "group": "Controle de pragas",
+      "title": "Contrato de Prestação de Serviços com a Empresa Responsável pelo Controle de Pragas",
+      "periodicity": "A depender do escopo do Contrato.",
+      "copies": "1"
+    },
+    {
+      "code": "DOC-21",
+      "group": "Controle de pragas",
+      "title": "Mapa de Iscas",
+      "periodicity": "Anual.",
+      "copies": "1"
+    },
+    {
+      "code": "DOC-22",
+      "group": "Controle de pragas",
+      "title": "Ficha de Dados de Segurança (FDS) de Produtos Químicos  utilizados Pela Empresa Dedetizadora.",
+      "periodicity": "Depende do escopo acordado entre as partes na realização da dedetizações locais.",
+      "copies": "A depender da quantidade de produtos."
+    },
+    {
+      "code": "DOC-23",
+      "group": "Potabilidade água",
+      "title": "Certificado de Higienização do Reservatório de Água",
+      "periodicity": "Semestral.",
+      "copies": "1"
+    },
+    {
+      "code": "DOC-24",
+      "group": "Potabilidade água",
+      "title": "Análise de Potabilidade da Água do Reservatório de Água",
+      "periodicity": "Semestral.",
+      "copies": "1"
+    },
+    {
+      "code": "DOC-25",
+      "group": "Potabilidade água",
+      "title": "Outorga do Poço (se aplicável)",
+      "periodicity": "Quatro a cinco anos.",
+      "copies": "1"
+    },
+    {
+      "code": "DOC-26",
+      "group": "Potabilidade água",
+      "title": "Análise de Potabilidade da Água do Poço (se aplicável)",
+      "periodicity": "Semestral.",
+      "copies": "1"
+    },
+    {
+      "code": "DOC-27",
+      "group": "Potabilidade água",
+      "title": "Certificado de Higienização e troca de filtro dos Bebedouros",
+      "periodicity": "Trimestral.",
+      "copies": "3"
+    },
+    {
+      "code": "DOC-28",
+      "group": "Potabilidade água",
+      "title": "Análise de Potabilidade da Água (Bebedouros / Purificadores)",
+      "periodicity": "Semestral.",
+      "copies": "3"
+    },
+    {
+      "code": "DOC-29",
+      "group": "Gestão resíduos",
+      "title": "Alvará de Funcionamento da Empresa Destinadora de Resíduos.",
+      "periodicity": "Anual.",
+      "copies": "1"
+    },
+    {
+      "code": "DOC-30",
+      "group": "Gestão resíduos",
+      "title": "Licença Sanitária da Empresa Destinadora de Resíduos",
+      "periodicity": "Anual.",
+      "copies": "1"
+    },
+    {
+      "code": "DOC-31",
+      "group": "Gestão resíduos",
+      "title": "Contrato de Prestação de Serviços com a Empresa Destinadora de Resíduos",
+      "periodicity": "Depende do escopo acordado entre as partes.",
+      "copies": "1"
+    },
+    {
+      "code": "DOC-32",
+      "group": "Gestão resíduos",
+      "title": "Licença ou Dispensa Ambiental Empresa Destinadora de Resíduos",
+      "periodicity": "Quatro Anos (varia por Estado).",
+      "copies": "1"
+    },
+    {
+      "code": "DOC-33",
+      "group": "Gestão resíduos",
+      "title": "MTR - Manifesto de Transporte de Resíduos",
+      "periodicity": "Mensal.",
+      "copies": "3-5 (do mês vigente)."
+    },
+    {
+      "code": "DOC-34",
+      "group": "Gestão resíduos",
+      "title": "DMR - Declaração de Movimentação de Resíduos",
+      "periodicity": "Trimestral.",
+      "copies": "Todos do ano vigente."
+    },
+    {
+      "code": "DOC-35",
+      "group": "Gestão resíduos",
+      "title": "PGRS - Plano de Gerenciamento de Resíduos Sólidos",
+      "periodicity": "Anual.",
+      "copies": "1"
+    },
+    {
+      "code": "DOC-36",
+      "group": "Ventilação e climatização",
+      "title": "Contrato (ou nota fiscal de serviço, caso serviço interno) com a Empresa de Ventilação e Climatização",
+      "periodicity": "Depende do escopo acordado entre as partes.",
+      "copies": "1"
+    },
+    {
+      "code": "DOC-37",
+      "group": "Ventilação e climatização",
+      "title": "PMOC - Plano de Manutenção, Operação e Controle",
+      "periodicity": "Anual.",
+      "copies": "1"
+    },
+    {
+      "code": "DOC-38",
+      "group": "Ventilação e climatização",
+      "title": "Análise de Qualidade do Ar",
+      "periodicity": "Semestral.",
+      "copies": "1"
+    },
+    {
+      "code": "DOC-39",
+      "group": "Monitoramento de temperatura",
+      "title": "Certificado de Calibração dos Instrumentos de Medição (Termohigrômetros)",
+      "periodicity": "Anual.",
+      "copies": "1"
+    },
+    {
+      "code": "DOC-40",
+      "group": "Monitoramento de temperatura",
+      "title": "Tabela de Registro da Temperatura e Umidade Mensal (Medição por Turno)",
+      "periodicity": "Mensal.",
+      "copies": "Todos do ano vigente."
+    },
+    {
+      "code": "DOC-41",
+      "group": "Treinamento(s)",
+      "title": "Registro de Treinamentos (Tabelas Assinadas e com Informe de CPF dos participantes)",
+      "periodicity": "Anual.",
+      "copies": "3 exemplares do ano vigente."
+    },
+    {
+      "code": "DOC-42",
+      "group": "Ambulatório",
+      "title": "Contrato com a Empresa Gestora do Ambulatório",
+      "periodicity": "Depende do escopo acordado entre as partes.",
+      "copies": "1"
+    },
+    {
+      "code": "DOC-43",
+      "group": "Ambulatório",
+      "title": "CRM do Médico Responsável pelo Ambulatório",
+      "periodicity": "Anual.",
+      "copies": "1"
+    },
+    {
+      "code": "DOC-44",
+      "group": "Ambulatório",
+      "title": "Alvará de Funcionamento do Ambulatório",
+      "periodicity": "Anual.",
+      "copies": "1"
+    },
+    {
+      "code": "DOC-45",
+      "group": "Ambulatório",
+      "title": "Licença Sanitária do Ambulatório",
+      "periodicity": "Anual.",
+      "copies": "1"
+    },
+    {
+      "code": "DOC-46",
+      "group": "Ambulatório",
+      "title": "ASOs - Atestado de Saúde Ocupacional",
+      "periodicity": "Anual.",
+      "copies": "5 exemplares do ano vigente."
+    },
+    {
+      "code": "DOC-47",
+      "group": "Ambulatório",
+      "title": "PCMSO - Programa de Controle Médico de Saúde Ocupacional",
+      "periodicity": "Anual.",
+      "copies": "1"
+    },
+    {
+      "code": "DOC-48",
+      "group": "Ambulatório",
+      "title": "PGR - Programa de Gerenciamento de Riscos",
+      "periodicity": "Anual.",
+      "copies": "1"
+    },
+    {
+      "code": "DOC-49",
+      "group": "Limpeza",
+      "title": "Contrato de Prestação de Serviços com a Empresa de Limpeza",
+      "periodicity": "Depende do escopo acordado entre as partes.",
+      "copies": "1"
+    },
+    {
+      "code": "DOC-50",
+      "group": "Limpeza",
+      "title": "Plano de Limpeza e Higienização\n(todas as áreas/departamentos/espaços ligados aos produtos de interesse a saúde).",
+      "periodicity": "Anual.",
+      "copies": "1"
+    },
+    {
+      "code": "DOC-51",
+      "group": "Limpeza",
+      "title": "Plano de Limpeza e Higienização dos Banheiros da Operação",
+      "periodicity": "Anual.",
+      "copies": "1"
+    },
+    {
+      "code": "DOC-52",
+      "group": "Segurança",
+      "title": "Contrato de Prestação de Serviços com a Empresa de Segurança",
+      "periodicity": "Depende do escopo acordado entre as partes.",
+      "copies": "1"
+    },
+    {
+      "code": "DOC-53",
+      "group": "Restaurante",
+      "title": "Licença Sanitária do Restaurante",
+      "periodicity": "Anual.",
+      "copies": "1"
+    },
+    {
+      "code": "DOC-54",
+      "group": "Restaurante",
+      "title": "Alvará de Funcionamento do Restaurante",
+      "periodicity": "Anual.",
+      "copies": "1"
+    },
+    {
+      "code": "DOC-55",
+      "group": "Restaurante",
+      "title": "Contrato de Prestação de Serviços com a Empresa Gestora do Restaurante",
+      "periodicity": "Depende do escopo acordado entre as partes.",
+      "copies": "1"
+    }
+  ],
+  "questions": [
+    {
+      "code": "ARM-01",
+      "department": "Acesso as Premissas da Operação",
+      "title": "O acesso a operação pela portaria da empresa foi realizado de forma ágil?",
+      "expected_answer": "Sim",
+      "guidance": "Sem observação.",
+      "bibliography": "—"
+    },
+    {
+      "code": "ARM-02",
+      "department": "Acesso as Premissas da Operação",
+      "title": "(Condicional) Senão, no acesso a portaria houve demora significativa?",
+      "expected_answer": "Não",
+      "condition": {
+        "code": "ARM-01",
+        "answer": "Não"
+      },
+      "guidance": "Sem observação.",
+      "bibliography": "—"
+    },
+    {
+      "code": "ARM-03",
+      "department": "Áreas de Armazenamento de Produtos de Interesse a Saúde",
+      "title": "Em toda área de armazenamento de artigos de interesse a saúde da operação tem-se monitoramento de temperatura e umidade?",
+      "expected_answer": "Sim",
+      "guidance": "Isto é, há sim quantidade devida de aparelhos.",
+      "bibliography": "—"
+    },
+    {
+      "code": "ARM-04",
+      "department": "Áreas de Armazenamento de Produtos de Interesse a Saúde",
+      "title": "(Condicional) Se sim, tal monitoramento se dá uma vez por turno?",
+      "expected_answer": "Sim",
+      "condition": {
+        "code": "ARM-03",
+        "answer": "Sim"
+      },
+      "bibliography": "—"
+    },
+    {
+      "code": "ARM-05",
+      "department": "Áreas de Armazenamento de Produtos de Interesse a Saúde",
+      "title": "(Condicional) Senão, este monitoramento apresenta qualquer tipo/maneira de lacuna de medição?",
+      "expected_answer": "Não",
+      "condition": {
+        "code": "ARM-03",
+        "answer": "Não"
+      },
+      "bibliography": "—"
+    },
+    {
+      "code": "ARM-06",
+      "department": "Áreas de Armazenamento de Produtos de Interesse a Saúde",
+      "title": "A área mantém condições ambientais adequadas de ventilação, iluminação, temperatura e umidade?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "ARM-07",
+      "department": "Áreas de Armazenamento de Produtos de Interesse a Saúde",
+      "title": "Fora encontrada a presença de odores anormais na área (ou amostral da área averiguado na visita)?",
+      "expected_answer": "Não",
+      "bibliography": "—"
+    },
+    {
+      "code": "ARM-08",
+      "department": "Áreas de Armazenamento de Produtos de Interesse a Saúde",
+      "title": "As estruturas de armazenamento de mercadorias de interesse a saúde são compatíveis com tal atribuição (são laváveis e higienizáveis)?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "ARM-09",
+      "department": "Áreas de Armazenamento de Produtos de Interesse a Saúde",
+      "title": "Produtos estão armazenados em prateleiras, ferramentas ou pallets laváveis sem contato direto com o piso?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "ARM-10",
+      "department": "Áreas de Armazenamento de Produtos de Interesse a Saúde",
+      "title": "Os espaços de armazenamento estão de sobremodo limpos, organizados, livres de infiltrações (por exemplo mofo) e/ou comprometimentos estruturais (por exemplo rachaduras ou ferrugem)?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "ARM-11",
+      "department": "Áreas de Armazenamento de Produtos de Interesse a Saúde",
+      "title": "O piso da área de armazenamento está íntegro, nivelado, limpo e livre de acúmulos de resíduos?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "ARM-12",
+      "department": "Áreas de Armazenamento de Produtos de Interesse a Saúde",
+      "title": "Em termos de volumetria, os espaços individuais de armazenamento estão adequadamente proprocionados ao volume de estoque de itens/mercadorias neles acomodados?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "ARM-13",
+      "department": "Áreas de Armazenamento de Produtos de Interesse a Saúde",
+      "title": "As diferentes categorias de produtos de interesse a saúde estão armazenadas em espaços (corredores, \"ruas\" e etc.) próprios e distintos, exclusivos a apenas itens da mesma categoria?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "ARM-14",
+      "department": "Áreas de Armazenamento de Produtos de Interesse a Saúde",
+      "title": "(Condicional) Se sim, tais \"ruas\" estão segregadas de modo aprovado pelo poder/órgão público competente (segundo representado em layout aprovado)?",
+      "expected_answer": "Sim",
+      "condition": {
+        "code": "ARM-13",
+        "answer": "Sim"
+      },
+      "bibliography": "—"
+    },
+    {
+      "code": "ARM-15",
+      "department": "Áreas de Armazenamento de Produtos de Interesse a Saúde",
+      "title": "(Condicional) Se sim, os diferentes espaços de armazenagem de produtos de interesse a saúde estão dispostos fisicamente de modo a evitar contaminação cruzada?",
+      "expected_answer": "Sim",
+      "condition": {
+        "code": "ARM-13",
+        "answer": "Sim"
+      },
+      "bibliography": "—"
+    },
+    {
+      "code": "ARM-16",
+      "department": "Áreas de Armazenamento de Produtos de Interesse a Saúde",
+      "title": "Tem-se placas de identificação das distinções de classe dos espaços de armazenamento de produtos (isto é, presença de placas de categorias)?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "ARM-17",
+      "department": "Áreas de Armazenamento de Produtos de Interesse a Saúde",
+      "title": "A área e os produtos nela armazenados estão livres de todo e qualquer sinal de infestação (embalagens roídas, perfurações, fezes de pragas, insetos vivos/mortos)?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "ARM-18",
+      "department": "Áreas de Armazenamento de Produtos de Interesse a Saúde",
+      "title": "A iluminação e ventilação de toda área de armazenamento de produtos de interesse a saúde é adequado?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "ARM-19",
+      "department": "Áreas de Armazenamento de Produtos de Interesse a Saúde",
+      "title": "Foram encontrados armaenzados na área artigos que não estão dentro do escopo de processamento legalmente aprovado pela unidade (tais como artigos inflamáveis e/ou perigosos)?",
+      "expected_answer": "Não",
+      "bibliography": "—"
+    },
+    {
+      "code": "ENT-01",
+      "area": "Docas de Entrada",
+      "department": "Docas de Entrada",
+      "title": "As docas utilizadas para o recebimento de produtos de interesse a saúde estão identificadas por \"categoria de itens ANVISA\"?",
+      "expected_answer": "Sim",
+      "bibliography": "—",
+      "guidance": "Isto é, contam com placas de categorização."
+    },
+    {
+      "code": "ENT-02",
+      "area": "Docas de Entrada",
+      "department": "Docas de Entrada",
+      "title": "A área das docas de entrada estão limpas, organizadas e são de fácil higienização? O piso, em toda sua extensão, está íntegro, nivelado e livre de acúmulo de resíduos?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "ENT-03",
+      "area": "Docas de Entrada",
+      "department": "Docas de Entrada",
+      "title": "A área das docas de entrada apresenta iluminação e ventilação adequadas?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "ENT-04",
+      "area": "Docas de Entrada",
+      "department": "Docas de Entrada",
+      "title": "As docas de entrada possuem vedação adequada para impedir entrada de pragas e poeira em janelas (telas milimétricas em bom estado de conservação)?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "ENT-05",
+      "area": "Docas de Entrada",
+      "department": "Docas de Entrada",
+      "title": "As docas de entrada, quando não em uso ativo, permanecem fechadas?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "REC-01",
+      "area": "Recebimento (Stage)",
+      "department": "Recebimento (Stage)",
+      "title": "O recebimento de produtos de interesse a saúde é realizado em área exclusiva e adequada para este fim?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "REC-02",
+      "area": "Recebimento (Stage)",
+      "department": "Recebimento (Stage)",
+      "title": "(Condicional) Se sim, há demarcações físicas presente no piso do espaço para segregar e definir os adequados espaçamentos de alocação de mercadorias? ",
+      "expected_answer": "Sim",
+      "bibliography": "—",
+      "condition": {
+        "code": "REC-01",
+        "answer": "Sim"
+      }
+    },
+    {
+      "code": "REC-03",
+      "area": "Recebimento (Stage)",
+      "department": "Recebimento (Stage)",
+      "title": "A área destinada ao recebimento inicial de artigos de interesse a saúde está adequadamente limpa e higienizada? O piso, em toda sua extensão, está íntegro, nivelado e livre de acúmulo de resíduos?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "REC-04",
+      "area": "Recebimento (Stage)",
+      "department": "Recebimento (Stage)",
+      "title": "A área apresenta iluminação e ventilação adequadas?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "REC-05",
+      "area": "Recebimento (Stage)",
+      "department": "Recebimento (Stage)",
+      "title": "Segundo declarado pelo anfitirão de do time de qualidade responsável, as mercadorias acomodadas neste espaço aqui permanecem por período superior a um dia?",
+      "expected_answer": "Não",
+      "bibliography": "—"
+    },
+    {
+      "code": "REC-06",
+      "area": "Recebimento (Stage)",
+      "department": "Recebimento (Stage)",
+      "title": "Os artigos, acomodados nesta área, estão dispostos de forma adequada?",
+      "expected_answer": "Sim",
+      "bibliography": "—",
+      "guidance": "Isto é, não sobrepostos ou empilhados de maneira precária, nem em desrespeito às divisórias marcadas no chão."
+    },
+    {
+      "code": "REC-07",
+      "area": "Recebimento (Stage)",
+      "department": "Recebimento (Stage)",
+      "title": "Houverá identificação de ocorências de misturas de categorias distintas, de artigos de interesse a saúde, no mesmo amontuado/pilha presente na área?",
+      "expected_answer": "Não",
+      "bibliography": "—"
+    },
+    {
+      "code": "REC-08",
+      "area": "Recebimento (Stage)",
+      "department": "Recebimento (Stage)",
+      "title": "Segundo declarado pelo anfitirão de do time de qualidade responsável, produtos avariados ou com inconformidades são identificados, segregados e registrados?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "QUA-01",
+      "area": "Área de Quarentena/Avarias",
+      "department": "Área de Quarentena/Avarias",
+      "title": "A área de quarentena está separada da(s) área(s) de armazenamento regular(es) de produtos de interesse a saúde (fisciamente ou por sistema eletrônico de bloqueio)?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "QUA-02",
+      "area": "Área de Quarentena/Avarias",
+      "department": "Área de Quarentena/Avarias",
+      "title": "As estruturas de armazenamento de mercadorias de interesse a saúde na área são compatíveis com tal atribuição (são laváveis)?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "QUA-03",
+      "area": "Área de Quarentena/Avarias",
+      "department": "Área de Quarentena/Avarias",
+      "title": "A área mantém condições ambientais adequadas (temperatura, umidade, ventilação, iluminação)?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "QUA-04",
+      "area": "Área de Quarentena/Avarias",
+      "department": "Área de Quarentena/Avarias",
+      "title": "Fora encontrada a presença de odores anormais na área?",
+      "expected_answer": "Não",
+      "bibliography": "—"
+    },
+    {
+      "code": "QUA-05",
+      "area": "Área de Quarentena/Avarias",
+      "department": "Área de Quarentena/Avarias",
+      "title": "Produtos estão armazenados em prateleiras, ferramentas ou pallets sem contato direto com o piso?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "QUA-06",
+      "area": "Área de Quarentena/Avarias",
+      "department": "Área de Quarentena/Avarias",
+      "title": "Os espaços de armazenamento estão de sobremodo limpos, organizados, livres de infiltrações (por exemplo mofo) e/ou comprometimentos estruturais (por exemplo rachaduras ou ferrugem)?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "QUA-07",
+      "area": "Área de Quarentena/Avarias",
+      "department": "Área de Quarentena/Avarias",
+      "title": "O piso da área de armazenamento está íntegro, nivelado, limpo e livre de acúmulos de resíduos?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "QUA-08",
+      "area": "Área de Quarentena/Avarias",
+      "department": "Área de Quarentena/Avarias",
+      "title": "Em termos de volumetria, os espaços individuais de armazenamento estão adequadamente proprocionados ao volume de estoque neles acomodados?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "QUA-09",
+      "area": "Área de Quarentena/Avarias",
+      "department": "Área de Quarentena/Avarias",
+      "title": "As diferentes categorias de produtos de interesse a saúde estão armazenadas em espaços (corredores, \"ruas\", segmentos e etc.) próprios e exclusivos apenas a itens da mesma categoria? ",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "QUA-10",
+      "area": "Área de Quarentena/Avarias",
+      "department": "Área de Quarentena/Avarias",
+      "title": "(Condicional) Se sim, tais \"ruas\" estão segregadas de modo aprovado pelo poder/órgão público competente (segundo representado em layout aprovado)?",
+      "expected_answer": "Sim",
+      "bibliography": "—",
+      "condition": {
+        "code": "QUA-09",
+        "answer": "Sim"
+      }
+    },
+    {
+      "code": "QUA-11",
+      "area": "Área de Quarentena/Avarias",
+      "department": "Área de Quarentena/Avarias",
+      "title": "(Condicional) Senão, ao menos os diferentes espaços de armazenagem de produtos de interesse a saúde estão dispostos fisicamente de modo a evitar contaminação cruzada?",
+      "expected_answer": "Sim",
+      "bibliography": "—",
+      "condition": {
+        "code": "QUA-09",
+        "answer": "Não"
+      }
+    },
+    {
+      "code": "QUA-12",
+      "area": "Área de Quarentena/Avarias",
+      "department": "Área de Quarentena/Avarias",
+      "title": "Tem-se placas de identificação das distinções de classe dos espaços de armazenamento de produtos (isto é, presença de placas de categorias)?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "QUA-13",
+      "area": "Área de Quarentena/Avarias",
+      "department": "Área de Quarentena/Avarias",
+      "title": "A área e os produtos nela armazenados estão livres de todo e qualquer sinal de infestação (embalagens roídas, perfurações, fezes de pragas, insetos vivos/mortos)?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "QUA-14",
+      "area": "Área de Quarentena/Avarias",
+      "department": "Área de Quarentena/Avarias",
+      "title": "Foram encontrados armaenzados na área artigos que não estão dentro do escopo de processamento legalmente aprovado pela unidade (tais como artigos inflamáveis e/ou perigosos)?",
+      "expected_answer": "Não",
+      "bibliography": "—"
+    },
+    {
+      "code": "QUA-15",
+      "area": "Área de Quarentena/Avarias",
+      "department": "Área de Quarentena/Avarias",
+      "title": "As bombonas encontram-se devidamente limpas (interna e extrenamente) e identificadas de acordo com a categoria (placas no corpo da bombona, não na tampa)?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "QUA-16",
+      "area": "Área de Quarentena/Avarias",
+      "department": "Área de Quarentena/Avarias",
+      "title": "As bombonas estão posicionadas sobre pallets de contenção adequados?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "QUA-17",
+      "area": "Área de Quarentena/Avarias",
+      "department": "Área de Quarentena/Avarias",
+      "title": "(Condicional) Se sim, estão estes pallets de contenção higienizados?",
+      "expected_answer": "Sim",
+      "bibliography": "—",
+      "condition": {
+        "code": "QUA-16",
+        "answer": "Sim"
+      }
+    },
+    {
+      "code": "QUA-18",
+      "area": "Área de Quarentena/Avarias",
+      "department": "Área de Quarentena/Avarias",
+      "title": "Fora encontrado(s) produto(s) danificado(s), contidos ou não em sacola plástica de contenção, em vazamento?",
+      "expected_answer": "Não",
+      "bibliography": "—"
+    },
+    {
+      "code": "RES-01",
+      "area": "Área de Descarte de Resíduos",
+      "department": "Área de Descarte de Resíduos",
+      "title": "A área de descarte de resíduos está fisicamente separada da(s) área(s) de armazenamento regular(es) dos produtos de interesse a saúde?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "RES-02",
+      "area": "Área de Descarte de Resíduos",
+      "department": "Área de Descarte de Resíduos",
+      "title": "A iluminação e ventilação de toda área de quarentena é adequada?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "RES-03",
+      "area": "Área de Descarte de Resíduos",
+      "department": "Área de Descarte de Resíduos",
+      "title": "A área de descarte está de sobremodo limpa, higienizada e organizada? ",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "RES-04",
+      "area": "Área de Descarte de Resíduos",
+      "department": "Área de Descarte de Resíduos",
+      "title": "O seu piso da área está íntegro, nivelado, limpo e livre de acúmulos de resíduos? Está livre de pequenos restos excessivos de embalagens e caixas?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "RES-05",
+      "area": "Área de Descarte de Resíduos",
+      "department": "Área de Descarte de Resíduos",
+      "title": "A área de descarte apresenta iluminação e ventilação adequadas?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "RES-06",
+      "area": "Área de Descarte de Resíduos",
+      "department": "Área de Descarte de Resíduos",
+      "title": "Os resíduos acomodados na área estão separados por tipo (recicláveis, comuns, bombonas, orgânicos e etc.)?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "RES-07",
+      "area": "Área de Descarte de Resíduos",
+      "department": "Área de Descarte de Resíduos",
+      "title": "Fora encontrada a presença de odores anormais na área?",
+      "expected_answer": "Não",
+      "bibliography": "—"
+    },
+    {
+      "code": "RES-08",
+      "area": "Área de Descarte de Resíduos",
+      "department": "Área de Descarte de Resíduos",
+      "title": "O local possui kit de contenção de emergência em caso de derramamento ou acidente?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "RES-09",
+      "area": "Área de Descarte de Resíduos",
+      "department": "Área de Descarte de Resíduos",
+      "title": "O acesso de veículos coletores é feito de forma a evitar contato com áreas limpas e de armazenamento de produtos?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "RES-10",
+      "area": "Área de Descarte de Resíduos",
+      "department": "Área de Descarte de Resíduos",
+      "title": "Há acúmulo de materiais próprios (ferramentas de operação) ou impróprios (ferragens, resíduos orgânicos ou sanitários) de forma desorganizada ou sem identificação na área de resíduos?",
+      "expected_answer": "Não",
+      "bibliography": "—"
+    },
+    {
+      "code": "RES-11",
+      "area": "Área de Descarte de Resíduos",
+      "department": "Área de Descarte de Resíduos",
+      "title": "(Condicional) Se sim, os mesmos permanecem parados na área por longo período (superior ou igual a dois dias)?",
+      "expected_answer": "Não",
+      "bibliography": "—",
+      "condition": {
+        "code": "RES-10",
+        "answer": "Sim"
+      }
+    },
+    {
+      "code": "SAI-01",
+      "area": "Docas de Saída",
+      "department": "Docas de Saída",
+      "title": "A área das docas de saída estão limpas, organizadas e são de fácil higienização? O piso, em toda sua extensão, está íntegro, nivelado e livre de acúmulo de resíduos?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "SAI-02",
+      "area": "Docas de Saída",
+      "department": "Docas de Saída",
+      "title": "A área das docas de saída apresenta iluminação e ventilação adequadas?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "SAI-03",
+      "area": "Docas de Saída",
+      "department": "Docas de Saída",
+      "title": "As docas de saída possuem vedação adequada para impedir entrada de pragas e poeira em janelas (milimétricas em bom estado de conservação)?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "SAI-04",
+      "area": "Docas de Saída",
+      "department": "Docas de Saída",
+      "title": "As docas de saída, quando não em uso ativo, permanecem fechadas?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "EXP-01",
+      "area": "Área de Despacho (Expedição)",
+      "department": "Área de Despacho (Expedição)",
+      "title": "A expedição de produtos de interesse a saúde é realizada em área exclusiva e adequada para este fim?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "EXP-02",
+      "area": "Área de Despacho (Expedição)",
+      "department": "Área de Despacho (Expedição)",
+      "title": "A área destinada a expedição de artigos de interesse a saúde está adequadamente limpa e higienizada? O piso, em toda sua extensão, está íntegro, nivelado e livre de acúmulo de resíduos?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "EXP-03",
+      "area": "Área de Despacho (Expedição)",
+      "department": "Área de Despacho (Expedição)",
+      "title": "A área apresenta iluminação e ventilação adequadas?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "HIG-01",
+      "area": "Higienização e Controle de Pragas",
+      "department": "Higienização e Controle de Pragas",
+      "title": "Há instituido e documentado um plano de limpeza e higienização de todas as áreas/departamentos/espaços ligados aos produtos de interesse a saúde?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "HIG-02",
+      "area": "Higienização e Controle de Pragas",
+      "department": "Higienização e Controle de Pragas",
+      "title": "(Condicional) Se sim, este plano está sendo aplicado de forma evidenciavelmente eficiente?",
+      "expected_answer": "Sim",
+      "bibliography": "—",
+      "guidance": "Isto é, as áreas estão limpas mesmo?",
+      "condition": {
+        "code": "HIG-01",
+        "answer": "Sim"
+      }
+    },
+    {
+      "code": "HIG-03",
+      "area": "Higienização e Controle de Pragas",
+      "department": "Higienização e Controle de Pragas",
+      "title": "Há instituido e documentado um plano de limpeza e higienização dos banheiros da operação?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "HIG-04",
+      "area": "Higienização e Controle de Pragas",
+      "department": "Higienização e Controle de Pragas",
+      "title": "(Condicional) Se sim, este plano está sendo aplicado de forma evidenciavelmente eficiente?",
+      "expected_answer": "Sim",
+      "bibliography": "—",
+      "guidance": "Isto é, as áreas estão limpas mesmo?",
+      "condition": {
+        "code": "HIG-03",
+        "answer": "Sim"
+      }
+    },
+    {
+      "code": "HIG-05",
+      "area": "Higienização e Controle de Pragas",
+      "department": "Higienização e Controle de Pragas",
+      "title": "Os ralos dos banheiros e bebedouros (ou amostral dos mesmos) da operação estão devidamente fechados ou possuem tampa adequada para evitar acúmulo de resíduos e proliferação de vetores?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "HIG-06",
+      "area": "Higienização e Controle de Pragas",
+      "department": "Higienização e Controle de Pragas",
+      "title": "As lixeiras instaladas nos banheiros são dotadas de sistema de acionamento por pedal, evitando contato manual?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "HIG-07",
+      "area": "Higienização e Controle de Pragas",
+      "department": "Higienização e Controle de Pragas",
+      "title": "Em relação aos banheiros, o revestimento do piso, paredes, teto são adequados? É de fácil higiene? Não possuem rachaduras, goteiras e pintura descascada?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "HIG-08",
+      "area": "Higienização e Controle de Pragas",
+      "department": "Higienização e Controle de Pragas",
+      "title": "Há uso de barreiras físicas adequadas (telas milimetradas, portas vedadas, cortinas de ar) para prevenir a entrada de pragas ao interior do operação?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "HIG-09",
+      "area": "Higienização e Controle de Pragas",
+      "department": "Higienização e Controle de Pragas",
+      "title": "As lixeiras que atendem a operação estão identificadas por tipo de resíduos (papel, plástico, madeira)?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "HIG-10",
+      "area": "Higienização e Controle de Pragas",
+      "department": "Higienização e Controle de Pragas",
+      "title": "As lixeiras que atendem a operação permanecem livres de acúmulo de lixo além de sua capacidade, evitando assim transbordamento?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "HIG-11",
+      "area": "Higienização e Controle de Pragas",
+      "department": "Higienização e Controle de Pragas",
+      "title": "Os produtos de limpeza estão identificados, armazenados adequadamente e segregado em local denominado prórpio (tal qual um Depósito de Material de Limpeza - DML)?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "HIG-12",
+      "area": "Higienização e Controle de Pragas",
+      "department": "Higienização e Controle de Pragas",
+      "title": "Na operação foi evidenciado uso de ferramentas como caixas de iscas e/ou armadilhas luminosas identificadas?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "HIG-13",
+      "area": "Higienização e Controle de Pragas",
+      "department": "Higienização e Controle de Pragas",
+      "title": "Foram observados (ou relatados por colaboradores) indícios ou mesmo flagrantes de pragas (roedores, insetos, pombos) nas áreas internas ou externas da operação?",
+      "expected_answer": "Não",
+      "bibliography": "—"
+    },
+    {
+      "code": "HIG-14",
+      "area": "Higienização e Controle de Pragas",
+      "department": "Higienização e Controle de Pragas",
+      "title": "Encontrado acúmulo de ferramentas da operação, ou de pilhas de material de algum setor, a muito tempo parados sem adereçamentos?",
+      "expected_answer": "Não",
+      "bibliography": "—"
+    },
+    {
+      "code": "HIG-15",
+      "area": "Higienização e Controle de Pragas",
+      "department": "Higienização e Controle de Pragas",
+      "title": "Algumas das áreas, ou qualquer outro espaço não mapeado, apresentou presença de produtos de interesse a saúde?",
+      "expected_answer": "Não",
+      "bibliography": "—",
+      "guidance": "Descrever localização."
+    },
+    {
+      "code": "HIG-16",
+      "area": "Higienização e Controle de Pragas",
+      "department": "Higienização e Controle de Pragas",
+      "title": "(Condicional) Se sim, além de inadequabilidade da sua falta de aprovação pelo órgão público competente, as características do espaço eram adequadas para tal prática?",
+      "expected_answer": "Sim",
+      "bibliography": "—",
+      "condition": {
+        "code": "HIG-15",
+        "answer": "Sim"
+      }
+    },
+    {
+      "code": "HIG-17",
+      "area": "Higienização e Controle de Pragas",
+      "department": "Higienização e Controle de Pragas",
+      "title": "A unidade possuí caixa de coleta hídrica de resíduos gerados pela operação?",
+      "expected_answer": "Sim",
+      "bibliography": "—"
+    },
+    {
+      "code": "HIG-18",
+      "area": "Higienização e Controle de Pragas",
+      "department": "Higienização e Controle de Pragas",
+      "title": "(Condicional) Senão, durante a visita, houverá evidenciação ou notícia da execução imprópria de higienização de ferramentas de trabalho nas premissas da operação?",
+      "expected_answer": "Não",
+      "bibliography": "—",
+      "condition": {
+        "code": "HIG-17",
+        "answer": "Não"
+      }
+    }
+  ],
+  "question_source": "Em progresso!W9:AB102 (roteiro completo); Relatórios Recebidos - Parte 2 (formato de revisão)"
+}

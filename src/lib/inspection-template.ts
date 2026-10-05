@@ -17,6 +17,8 @@ export type InspectionTemplateItem={
   condition_json:string|null;
   sort_order:number;
   active?:number;
+  document_periodicity?:string|null;
+  document_copies?:string|null;
 };
 
 function isSnapshotItem(value:unknown):value is InspectionTemplateItem{

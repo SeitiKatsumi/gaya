@@ -8,9 +8,6 @@ export function publicOrigin(req: Request) {
   const forwardedProto = firstHeaderValue(req.headers.get('x-forwarded-proto'));
   if (forwardedHost) return `${forwardedProto || 'https'}://${forwardedHost}`;
 
-  const origin = req.headers.get('origin');
-  if (origin) return new URL(origin).origin;
-
   const host = firstHeaderValue(req.headers.get('host'));
   if (host) {
     const protocol = forwardedProto || new URL(req.url).protocol.replace(':', '');

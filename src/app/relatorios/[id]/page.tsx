@@ -1,0 +1,56 @@
+import Link from 'next/link';
+import {notFound,redirect} from 'next/navigation';
+import {currentUser} from '@/lib/auth';
+import {db} from '@/lib/db';
+import {AppShell} from '@/components/app-shell';
+import {ReportItemForm,ReportStatusButton} from '@/components/report-item-form';
+import {ReportVisitWizard} from '@/components/report-visit-wizard';
+import {inspectionTemplateItems} from '@/lib/inspection-template';
+import {applicableItems,documentSection,filledItems,isVisitReport,parseDetails,priorPlans,saoPauloDate,sectionOf,type AnswerRow} from '@/lib/received-reports';
+import {dayLabel} from '@/lib/calendar';
+import {statusLabel} from '@/lib/utils';
+
+type Inspection={id:string;company_id:string;unit_id:string;unit_code:string;company_name:string;inspector_id:string;author:string;status:string;template_id:string;template_snapshot:string|null;planned_start:string|null;received_at:string|null;send_due_date:string|null;progress:number};
+type Review={section:string;status:string;note:string;reviewer:string|null;reviewed_at:string|null};
+export default async function Examine({params,searchParams}:{params:Promise<{id:string}>;searchParams:Promise<{editar?:string;salvo?:string;erro?:string;revisado?:string;area?:string;item?:string}>}){
+  const user=await currentUser();if(!user)redirect('/login');const {id}=await params,query=await searchParams;
+  const inspection=db.prepare('SELECT i.*,u.code unit_code,c.trade_name company_name,r.name author FROM inspections i JOIN units u ON u.id=i.unit_id JOIN companies c ON c.id=i.company_id LEFT JOIN users r ON r.id=i.inspector_id WHERE i.id=?').get(id) as Inspection|undefined;
+  if(!inspection||user.role!=='SUPER_ADMIN'&&inspection.company_id!==user.company_id||user.role==='INSPECTOR'&&inspection.inspector_id!==user.id)notFound();
+  const technician=user.role==='INSPECTOR',draft=['SCHEDULED','IN_PROGRESS','CHANGES_REQUESTED'].includes(inspection.status);
+  const answers=(db.prepare('SELECT id,item_id,answer,comment,details_json,revision FROM responses WHERE inspection_id=? AND is_current=1').all(id) as AnswerRow[]).map(row=>({...row}));
+  const answerById=new Map(answers.map(answer=>[answer.item_id,answer]));
+  const catalog=applicableItems(inspectionTemplateItems(inspection.template_snapshot,inspection.template_id),answers);
+  const hasSubmission=!!inspection.received_at||['IN_REVIEW','CHANGES_REQUESTED','APPROVED'].includes(inspection.status);
+  const items=draft&&!hasSubmission?catalog:catalog.filter(item=>answerById.has(item.id)||technician&&draft&&!!item.condition_json);
+  const sections=[...new Set(items.map(sectionOf))];
+  const submitted=filledItems(inspection),filledSections=new Set(submitted.map(sectionOf));
+  const reviews=db.prepare('SELECT v.*,r.name reviewer FROM report_section_reviews v LEFT JOIN users r ON r.id=v.reviewed_by WHERE inspection_id=?').all(id) as Review[];
+  const evidences=(db.prepare('SELECT id,item_id,kind,original_name FROM evidences WHERE inspection_id=? ORDER BY created_at').all(id) as {id:string;item_id:string;kind:string;original_name:string}[]).map(row=>({...row}));
+  const plans=priorPlans(inspection);
+  const format=(day:string)=>dayLabel(day,{day:'2-digit',month:'2-digit',year:'numeric'});
+  return <AppShell user={user} active="reports"><header className="topbar"><div><div className="eyebrow">{inspection.company_name} · {statusLabel(inspection.status)}</div><h1 className="title">Relatório de {inspection.unit_code}</h1><p className="muted">Visita: {inspection.planned_start?format(inspection.planned_start):'Não informada'} · Responsável técnico: {inspection.author||'Não informado'}</p></div><div className="header-actions"><Link className="btn btn-ghost" href="/relatorios">Voltar à listagem</Link>{submitted.length>0&&<Link className="btn btn-soft" href={`/api/reports/${id}`}>Baixar relatório PDF</Link>}{technician&&draft&&inspection.status!=='SCHEDULED'&&<ReportStatusButton id={id} status={inspection.status==='CHANGES_REQUESTED'?'IN_PROGRESS':'IN_REVIEW'} label={inspection.status==='CHANGES_REQUESTED'?'Retomar correção':'Enviar para revisão'} disabled={!submitted.length}/>}</div></header>
+    {query.salvo&&<p className="notice success-notice" role="status">Item salvo. As versões anteriores foram preservadas.</p>}{query.revisado&&<p className="notice success-notice" role="status">Revisão registrada.</p>}{query.erro&&<p className="error" role="alert">{query.erro==='documento'?'Selecione a disponibilização do documento e confira o vencimento.':query.erro==='plano'?'Preencha as não conformidades e confira os campos do plano.':query.erro==='tamanho'?'O arquivo excede o limite permitido.':query.erro==='tipo'?'Formato de arquivo não permitido.':'Revise a resposta e tente novamente.'}</p>}
+    {inspection.received_at&&<div className="card report-receipt"><span><b>Recebido em</b> {format(saoPauloDate(inspection.received_at))}</span><span><b>Data limite de envio</b> {inspection.send_due_date?format(inspection.send_due_date):'Não registrada'}</span><small>Prazo de dois dias úteis, de segunda a sexta-feira.</small></div>}
+    {draft&&<p className="notice">{technician?'Salve os itens verificados nesta visita. Somente as partes preenchidas serão enviadas ao coordenador.':hasSubmission?'Aguardando a correção e o reenvio pelo RT.':'Este relatório ainda está com o RT. A revisão começa após o envio.'}</p>}
+    {inspection.status==='APPROVED'&&<p className="notice success-notice">Todas as seções foram aprovadas. Relatório pronto para envio ao cliente. {!technician&&<Link href={`/relatorios/${id}/envio`}>Baixar e registrar envio</Link>}</p>}
+    {technician&&draft&&reviews.filter(review=>review.status==='REJECTED'&&review.note).map(review=><p className="notice report-return-note" key={review.section}><b>{review.section} — orientação do coordenador:</b> {review.note}</p>)}
+    {technician&&draft&&<ReportVisitWizard inspectionId={id} items={items.map(item=>({...item}))} responses={answers} evidences={evidences} plans={plans} selectedArea={query.area} selectedItem={query.item} lockedSections={reviews.filter(review=>review.status==='APPROVED').map(review=>review.section)}/>}
+    {(!technician||!draft)&&sections.length>0&&<nav className="report-section-nav" aria-label="Seções do relatório">{sections.map(section=><Link href={`#${encodeURIComponent(section)}`} key={section}>{section}</Link>)}</nav>}
+    {!items.length&&<p className="card empty-state">Não há respostas enviadas neste relatório.</p>}
+    {(!technician||!draft)&&sections.map(section=>{
+      const review=reviews.find(review=>review.section===section),sectionItems=items.filter(item=>sectionOf(item)===section);
+      const editable=draft?(technician?review?.status!=='APPROVED':!hasSubmission):!technician&&inspection.status==='IN_REVIEW'&&query.editar===section;
+      const canReview=!technician&&inspection.status==='IN_REVIEW'&&filledSections.has(section);
+      const incomplete=catalog.some(item=>item.condition_json&&sectionOf(item)===section&&!answerById.has(item.id));
+      return <section className="report-section" id={section} key={section}><div className="section-head"><div><h2>{section}</h2><p>{review?.status==='APPROVED'?'Seção aprovada':review?.status==='REJECTED'?'Correção solicitada':filledSections.has(section)?'Aguardando revisão':'Ainda não preenchida'}{review?.reviewer?` · ${review.reviewer}`:''}</p></div>{canReview&&<Link className="btn btn-ghost" href={editable?`/relatorios/${id}#${encodeURIComponent(section)}`:`/relatorios/${id}?editar=${encodeURIComponent(section)}#${encodeURIComponent(section)}`}>{editable?'Concluir edição':'Editar planilha'}</Link>}</div>
+        {review?.note&&<p className={`notice ${review.status==='REJECTED'?'report-return-note':''}`}><b>Orientação do coordenador:</b> {review.note}</p>}
+        {section===documentSection?<div className="card report-table-scroll" tabIndex={0} role="region" aria-label="Verificação documental"><table className="report-table document-table"><thead><tr><th>Título da documentação</th><th>Presente e vigente?</th><th>Se sim, vigente em pasta?</th><th>Vencimento</th><th>Periodicidade</th><th>Número de exemplares em pasta</th><th><span className="sr-only">Salvar</span></th></tr></thead><tbody>{sectionItems.map((item,index)=><DocumentRows key={item.id} {...{id,item,index,sectionItems,answerById,editable}}/>)}</tbody></table></div>:sectionItems.some(item=>['ACTION_PLAN','PLAN_REVIEW'].includes(item.response_type))?<div className="grid">{sectionItems.map(item=><ReportItemForm key={`${item.id}-${answerById.get(item.id)?.revision||0}`} inspectionId={id} item={{...item}} response={answerById.get(item.id)} details={parseDetails(answerById.get(item.id)?.details_json)} editable={editable} evidences={[]} plans={plans}/>)}</div>:<div className="card report-table-scroll" tabIndex={0} role="region" aria-label={`Verificações de ${section}`}><table className="report-table storage-table"><thead><tr><th>Área/Departamento</th><th>Item de verificação</th><th>Sim / Não</th><th>Fotos associadas à verificação</th><th>Transcrição do áudio / Observações</th></tr></thead><tbody>{sectionItems.map(item=><ReportItemForm key={`${item.id}-${answerById.get(item.id)?.revision||0}`} inspectionId={id} item={{...item}} response={answerById.get(item.id)} details={parseDetails(answerById.get(item.id)?.details_json)} editable={editable} evidences={evidences.filter(evidence=>evidence.item_id===item.id)} plans={[]}/>)}</tbody></table></div>}
+        {canReview&&incomplete&&<p className="notice">A alteração habilitou uma pergunta condicional ainda sem resposta. Devolva esta seção ao RT para completar.</p>}
+        {canReview&&<div className="report-review-actions"><form action={`/api/received-reports/${id}/review`} method="post"><input type="hidden" name="section" value={section}/><input type="hidden" name="decision" value="APPROVED"/><button className="btn btn-primary" disabled={review?.status==='APPROVED'||incomplete}>Aprovar planilha</button></form><details><summary className="btn btn-danger">Reprovar planilha</summary><form action={`/api/received-reports/${id}/review`} method="post"><input type="hidden" name="section" value={section}/><input type="hidden" name="decision" value="REJECTED"/><div className="field"><label htmlFor={`reject-${section}`}>Motivo e orientação ao RT</label><textarea id={`reject-${section}`} name="note" required maxLength={2000} rows={3}/></div><button className="btn btn-danger">Devolver ao RT</button></form></details></div>}
+      </section>;
+    })}
+    {draft&&!isVisitReport(inspection)&&<Link className="btn btn-ghost" href={`/inspecoes/${id}`}>Abrir roteiro original</Link>}
+  </AppShell>;
+}
+
+function DocumentRows({id,item,index,sectionItems,answerById,editable}:{id:string;item:ReturnType<typeof inspectionTemplateItems>[number];index:number;sectionItems:ReturnType<typeof inspectionTemplateItems>;answerById:Map<string,AnswerRow>;editable:boolean}){return <>{(index===0||sectionItems[index-1].section!==item.section)&&<tr className="report-group"><th colSpan={7}>{item.section}</th></tr>}<ReportItemForm key={`${item.id}-${answerById.get(item.id)?.revision||0}`} inspectionId={id} item={{...item}} response={answerById.get(item.id)} details={parseDetails(answerById.get(item.id)?.details_json)} editable={editable} evidences={[]} plans={[]}/></>;}

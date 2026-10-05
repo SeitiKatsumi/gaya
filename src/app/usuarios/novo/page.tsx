@@ -17,7 +17,7 @@ export default async function NewUser({searchParams}:{searchParams:Promise<{erro
         <div className="field"><label>E-MAIL</label><input name="email" required type="email" autoComplete="email"/></div>
         <div className="field"><label>SENHA INICIAL</label><input name="password" required type="password" minLength={8} autoComplete="new-password"/><small className="muted">Mínimo de 8 caracteres, com letra e número.</small></div>
         {user.role==='SUPER_ADMIN'&&<div className="field"><label>EMPRESA</label><select name="company_id" required><option value="">Selecione</option>{companies.map(c=><option key={c.id} value={c.id}>{c.trade_name}</option>)}</select></div>}
-        <div className="field"><label>NÍVEL DE ACESSO</label><select name="role" required><option value="INSPECTOR">Inspetor</option><option value="SUPERVISOR">Supervisor</option>{user.role==='SUPER_ADMIN'&&<option value="SUPER_ADMIN">Super Admin</option>}</select></div>
+        <div className="field"><label>NÍVEL DE ACESSO</label><select name="role" required><option value="INSPECTOR">Responsável técnico</option><option value="SUPERVISOR">Coordenador</option>{user.role==='SUPER_ADMIN'&&<option value="SUPER_ADMIN">Super Admin</option>}</select></div>
       </div>
       <div className="form-actions"><Link className="btn btn-ghost" href="/usuarios">Cancelar</Link><button className="btn btn-primary">Cadastrar usuário</button></div>
     </form></AppShell>;

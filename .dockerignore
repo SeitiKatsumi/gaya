@@ -5,5 +5,7 @@ data
 storage
 backups
 .env
+.env.*
+tmp
 npm-debug.log*
 pnpm-debug.log*
