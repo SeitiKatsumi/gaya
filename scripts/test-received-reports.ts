@@ -28,6 +28,7 @@ try{
   assert.equal((await request('/api/received-reports',unassigned,{unit_id:unit,visit_date:'2026-09-23'})).status,403);
   assert.equal((await request('/api/received-reports',coord,{unit_id:foreignUnit,visit_date:'2026-09-23'})).status,403);
   const id=await create(tech);
+  assert.equal(db.prepare('SELECT count(*) n FROM visits WHERE unit_id=?').get(unit)!.n,0,'Unscheduled visits must allow creating reports.');
   assert.equal((await status(id,tech)).status,409);
   const draftListing=await (await request('/relatorios',coord)).text();assert.ok(!draftListing.includes(`/relatorios/${id}`));
   assert.equal((await request(`/relatorios/${id}`,unassigned)).status,404);

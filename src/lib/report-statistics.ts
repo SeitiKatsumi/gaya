@@ -5,7 +5,7 @@ import {inspectionTemplateItems,type InspectionTemplateItem} from './inspection-
 import {applicableItems,parseDetails,type AnswerRow,type ResponseDetails} from './received-reports.ts';
 
 export type StatisticsUnit={id:string;code:string;name:string;company_name:string};
-export type ReportFilters={month:string;unit:string};
+export type ReportFilters={month:string;unit:string;responsible?:string};
 type ReportRow={id:string;unit_id:string;unit_code:string;unit_name:string;company_name:string;template_id:string;template_name:string;template_snapshot:string|null;planned_start:string|null;created_at:string;status:string;received_at:string|null;inspector_name:string|null};
 type ResponseRow=AnswerRow&{inspection_id:string;compliance:string|null};
 type Counts={answered:number;applicable:number;compliant:number;noncompliant:number;notApplicable:number;unclassified:number};
@@ -19,23 +19,32 @@ export type TrackedPlan={id:string;inspection_id:string;unit_id:string;unit_code
 const emptyCounts=():Counts=>({answered:0,applicable:0,compliant:0,noncompliant:0,notApplicable:0,unclassified:0});
 const receivedFilter="i.status<>'CANCELLED' AND (i.received_at IS NOT NULL OR i.status IN ('IN_REVIEW','CHANGES_REQUESTED','APPROVED'))";
 export function validMonth(month:string){return /^\d{4}-\d{2}$/.test(month)&&validDate(month+'-01');}
-export function reportFilters(query:{mes?:string;unidade?:string},defaultMonth=true):ReportFilters{
+export function reportFilters(query:{mes?:string;unidade?:string;responsavel?:string},defaultMonth=true):ReportFilters{
   const month=query.mes??(defaultMonth?saoPauloToday().slice(0,7):''),unit=query.unidade||'';
-  if((defaultMonth&&!month)||(month&&!validMonth(month))||unit.length>150)throw new Error('Escolha um mês válido e uma unidade disponível.');
-  return {month,unit};
+  const responsible=query.responsavel||'';
+  if((defaultMonth&&!month)||(month&&!validMonth(month))||unit.length>150||responsible.length>150)throw new Error('Escolha filtros válidos.');
+  return {month,unit,...(responsible?{responsible}:{})};
 }
 function monthEnd(month:string){const date=new Date(month+'-01T12:00:00Z');date.setUTCMonth(date.getUTCMonth()+1);return date.toISOString().slice(0,10);}
 function scope(user:SessionUser){return user.role==='SUPER_ADMIN'?{sql:'1=1',params:[] as (string|null)[]}:user.role==='INSPECTOR'?{sql:'i.company_id=? AND i.inspector_id=?',params:[user.company_id,user.id]}:{sql:'i.company_id=?',params:[user.company_id]};}
-export function statisticsUnits(user:SessionUser){
+export function statisticsResponsibles(user:SessionUser){
+  const where=user.role==='SUPER_ADMIN'?"role='INSPECTOR'":user.role==='INSPECTOR'?"role='INSPECTOR' AND id=?":"role='INSPECTOR' AND company_id=?";
+  return db.prepare(`SELECT id,name FROM users WHERE ${where} ORDER BY name`).all(...(user.role==='SUPER_ADMIN'?[]:[user.role==='INSPECTOR'?user.id:user.company_id])) as {id:string;name:string}[];
+}
+export function availableStatisticsResponsible(user:SessionUser,responsible?:string){return !responsible||statisticsResponsibles(user).some(row=>row.id===responsible);}
+export function statisticsUnits(user:SessionUser,responsible=''){
   const where=user.role==='SUPER_ADMIN'?'1=1':user.role==='INSPECTOR'?"un.company_id=? AND (un.responsible_id=? OR EXISTS(SELECT 1 FROM inspections i WHERE i.unit_id=un.id AND i.inspector_id=? AND i.company_id=un.company_id))":'un.company_id=?';
   const params=user.role==='SUPER_ADMIN'?[]:user.role==='INSPECTOR'?[user.company_id,user.id,user.id]:[user.company_id];
-  return db.prepare(`SELECT un.id,un.code,un.name,c.trade_name company_name FROM units un JOIN companies c ON c.id=un.company_id WHERE ${where} ORDER BY un.code,c.trade_name`).all(...params) as StatisticsUnit[];
+  if(responsible)params.push(responsible);
+  return db.prepare(`SELECT un.id,un.code,un.name,c.trade_name company_name FROM units un JOIN companies c ON c.id=un.company_id WHERE (${where})${responsible?' AND un.responsible_id=?':''} ORDER BY un.code,c.trade_name`).all(...params) as StatisticsUnit[];
 }
 export function availableStatisticsUnit(user:SessionUser,unit:string){return !unit||statisticsUnits(user).some(row=>row.id===unit);}
 export function reportRows(user:SessionUser,filters:ReportFilters){
+  if(!availableStatisticsResponsible(user,filters.responsible))throw new Error('Responsável indisponível.');
   const scoped=scope(user);let where=scoped.sql+` AND ${receivedFilter}`;
   if(filters.month){where+=' AND i.planned_start>=? AND i.planned_start<?';scoped.params.push(filters.month+'-01',monthEnd(filters.month));}
   if(filters.unit){where+=' AND i.unit_id=?';scoped.params.push(filters.unit);}
+  if(filters.responsible){where+=' AND i.unit_id IN (SELECT id FROM units WHERE responsible_id=?)';scoped.params.push(filters.responsible);}
   const reports=db.prepare(`SELECT i.id,i.unit_id,i.template_id,i.template_snapshot,i.planned_start,i.created_at,i.status,i.received_at,un.code unit_code,un.name unit_name,c.trade_name company_name,t.name template_name,author.name inspector_name FROM inspections i JOIN units un ON un.id=i.unit_id JOIN companies c ON c.id=i.company_id JOIN templates t ON t.id=i.template_id LEFT JOIN users author ON author.id=i.inspector_id WHERE ${where} ORDER BY i.planned_start,i.created_at,i.id`).all(...scoped.params) as ReportRow[];
   const responses=db.prepare(`SELECT r.id,r.inspection_id,r.item_id,r.answer,r.compliance,r.comment,r.details_json,r.revision FROM responses r JOIN inspections i ON i.id=r.inspection_id WHERE ${where} AND r.is_current=1 ORDER BY r.inspection_id,r.item_id,r.revision,r.id`).all(...scoped.params) as ResponseRow[];
   return {reports,responses};
@@ -63,10 +72,11 @@ export function aggregateCoverage(reports:(ReportRow&{items:InspectionTemplateIt
 export function monthlyStatistics(user:SessionUser,filters:ReportFilters):MonthlyStatistics{
   if(!validMonth(filters.month)||!availableStatisticsUnit(user,filters.unit))throw new Error('Filtro inválido.');
   const raw=reportRows(user,filters),aggregated=aggregateCoverage(raw.reports.map(report=>({...report,items:inspectionTemplateItems(report.template_snapshot,report.template_id)})),raw.responses);
-  const units=new Map(statisticsUnits(user).filter(unit=>!filters.unit||unit.id===filters.unit).map(unit=>[unit.id,{...unit,scheduled:0,received:0,approved:0,uniqueAnswered:0,uniqueApplicable:0}]));
+  const units=new Map(statisticsUnits(user,filters.responsible).filter(unit=>!filters.unit||unit.id===filters.unit).map(unit=>[unit.id,{...unit,scheduled:0,received:0,approved:0,uniqueAnswered:0,uniqueApplicable:0}]));
   const visitScope=user.role==='SUPER_ADMIN'?'1=1':user.role==='INSPECTOR'?'un.company_id=? AND un.responsible_id=?':'un.company_id=?';
   const params:(string|null)[]=user.role==='SUPER_ADMIN'?[]:user.role==='INSPECTOR'?[user.company_id,user.id]:[user.company_id];params.push(filters.month+'-01',monthEnd(filters.month));if(filters.unit)params.push(filters.unit);
-  const visits=db.prepare(`SELECT v.unit_id,count(*) scheduled FROM visits v JOIN units un ON un.id=v.unit_id WHERE ${visitScope} AND v.status='SCHEDULED' AND v.visit_date>=? AND v.visit_date<?${filters.unit?' AND v.unit_id=?':''} GROUP BY v.unit_id`).all(...params) as {unit_id:string;scheduled:number}[];
+  if(filters.responsible)params.push(filters.responsible);
+  const visits=db.prepare(`SELECT v.unit_id,count(*) scheduled FROM visits v JOIN units un ON un.id=v.unit_id WHERE ${visitScope} AND v.status='SCHEDULED' AND v.visit_date>=? AND v.visit_date<?${filters.unit?' AND v.unit_id=?':''}${filters.responsible?' AND un.responsible_id=?':''} GROUP BY v.unit_id`).all(...params) as {unit_id:string;scheduled:number}[];
   for(const visit of visits){const unit=units.get(visit.unit_id);if(unit)unit.scheduled=visit.scheduled;}
   for(const report of aggregated.reports){const unit=units.get(report.unit_id);if(unit){unit.received++;if(report.status==='APPROVED')unit.approved++;}}
   for(const row of aggregated.unitCoverage){const unit=units.get(row.unit_id);if(unit){unit.uniqueAnswered=row.answered;unit.uniqueApplicable=row.applicable;}}
@@ -74,7 +84,7 @@ export function monthlyStatistics(user:SessionUser,filters:ReportFilters):Monthl
 }
 export function trackedPlans(user:SessionUser,filters:ReportFilters,asOf?:string):TrackedPlan[]{
   if((filters.month&&!validMonth(filters.month))||!availableStatisticsUnit(user,filters.unit))throw new Error('Filtro inválido.');
-  const {reports,responses}=reportRows(user,{month:'',unit:filters.unit}),plans:TrackedPlan[]=[],checks:{report:ReportRow;details:ResponseDetails}[]=[];
+  const {reports,responses}=reportRows(user,{...filters,month:''}),plans:TrackedPlan[]=[],checks:{report:ReportRow;details:ResponseDetails}[]=[];
   for(const report of reports){
     if(asOf&&(!report.planned_start||report.planned_start>=asOf))continue;
     const answers=responses.filter(row=>row.inspection_id===report.id),byItem=new Map(answers.map(row=>[row.item_id,row]));

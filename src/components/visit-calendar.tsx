@@ -6,7 +6,7 @@ import {CalendarDays,ChevronLeft,ChevronRight,Clock3,Plus,X} from 'lucide-react'
 import {addDays,calendarDays,dayLabel,minutes,visitLanes,type Visit,type VisitUnit} from '@/lib/calendar';
 
 type Props={units:VisitUnit[];visits:Visit[];date:string;view:'month'|'week';today:string;canEdit:boolean;showCompany:boolean};
-type Selection={visit?:Visit;date:string;time:string};
+type Selection={visit?:Visit;copy?:Visit;date:string;time:string};
 const weekdays=['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
 const months=Array.from({length:12},(_,i)=>dayLabel(`2026-${String(i+1).padStart(2,'0')}-01`,{month:'long'}));
 
@@ -51,22 +51,23 @@ export function VisitCalendar({units,visits,date,view,today,canEdit,showCompany}
       </div></div>}
       <div className="calendar-footer"><CalendarDays size={15}/>{visible.length} {visible.length===1?'visita':'visitas'} neste período{!units.length?' · Nenhuma unidade atribuída ao seu usuário.':''}{canEdit?' · Clique em um dia ou em uma visita para editar.':' · Clique em uma visita para consultar os detalhes.'}</div>
     </section>
-    {selection&&<VisitDialog key={selection.visit?.id||`${selection.date}-${selection.time}`} selection={selection} units={units} canEdit={canEdit} showCompany={showCompany} close={()=>setSelection(null)} saved={message=>{setNotice(message);setSelection(null);router.refresh();}}/>}
+    {selection&&<VisitDialog key={selection.visit?.id||`${selection.date}-${selection.time}`} selection={selection} units={units} canEdit={canEdit} showCompany={showCompany} duplicate={()=>setSelection({copy:selection.visit,date:addDays(selection.date,7),time:selection.time})} close={()=>setSelection(null)} saved={message=>{setNotice(message);setSelection(null);router.refresh();}}/>}
   </>;
 }
 
-function VisitDialog({selection,units,canEdit,showCompany,close,saved}:{selection:Selection;units:VisitUnit[];canEdit:boolean;showCompany:boolean;close:()=>void;saved:(message:string)=>void}){
+function VisitDialog({selection,units,canEdit,showCompany,duplicate,close,saved}:{selection:Selection;units:VisitUnit[];canEdit:boolean;showCompany:boolean;duplicate:()=>void;close:()=>void;saved:(message:string)=>void}){
   const dialog=useRef<HTMLDialogElement>(null),form=useRef<HTMLFormElement>(null);
-  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[repeat,setRepeat]=useState(false),[cancel,setCancel]=useState(false),[chosenUnit,setChosenUnit]=useState(selection.visit?.unit_id||units.find(unit=>unit.active)?.id||'');
+  const initial=selection.visit||selection.copy;
+  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[repeat,setRepeat]=useState(false),[cancel,setCancel]=useState(false),[chosenUnit,setChosenUnit]=useState(initial?.unit_id||units.find(unit=>unit.active)?.id||''),[additionalDates,setAdditionalDates]=useState<string[]>([]);
   useEffect(()=>{dialog.current?.showModal();},[]);
   const visit=selection.visit;
   async function send(intent:'create'|'update'|'cancel'){
     if(busy)return;
     if(intent!=='cancel'&&!form.current?.reportValidity())return;
-    const fields=Object.fromEntries(new FormData(form.current!));
+    const formData=new FormData(form.current!),fields=Object.fromEntries(formData);
     setBusy(true);setError('');
     try{
-      const response=await fetch('/api/visits',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({intent,...(visit?{id:visit.id}:{}),...(intent==='cancel'?{}:{...fields,...(repeat?{}:{repeat_until:undefined})})})});
+      const response=await fetch('/api/visits',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({intent,...(visit?{id:visit.id}:{}),...(intent==='cancel'?{}:{...fields,additional_dates:formData.getAll('additional_dates'),...(repeat?{}:{repeat_until:undefined})})})});
       const result=await response.json();if(!response.ok){setError(result.error||'Não foi possível salvar.');return;}
       saved(intent==='cancel'?'Visita cancelada.':intent==='update'?'Visita atualizada.':`${result.count} ${result.count===1?'visita criada':'visitas criadas'}.`);
     }catch{setError('Não foi possível conectar. Seus dados permanecem no formulário.');}finally{setBusy(false);}
@@ -74,21 +75,22 @@ function VisitDialog({selection,units,canEdit,showCompany,close,saved}:{selectio
   function submit(event:FormEvent){event.preventDefault();void send(visit?'update':'create');}
   const start=selection.time,endMinutes=Math.min(1439,minutes(start)+240),end=`${String(Math.floor(endMinutes/60)).padStart(2,'0')}:${String(endMinutes%60).padStart(2,'0')}`;
   return <dialog ref={dialog} className="visit-dialog" aria-labelledby="visit-title" onCancel={event=>{if(busy)event.preventDefault();else close();}}>
-    <div className="visit-dialog-head"><h2 id="visit-title">{visit?(canEdit?'Editar visita':'Detalhes da visita'):'Criar visita'}</h2><button type="button" className="calendar-arrow" aria-label="Fechar" onClick={close} disabled={busy}><X size={20}/></button></div>
+    <div className="visit-dialog-head"><h2 id="visit-title">{visit?(canEdit?'Editar visita':'Detalhes da visita'):selection.copy?'Duplicar visita':'Criar visita'}</h2><button type="button" className="calendar-arrow" aria-label="Fechar" onClick={close} disabled={busy}><X size={20}/></button></div>
     {error&&<div className="error" role="alert">{error}</div>}
     <form ref={form} onSubmit={submit}>
       <fieldset disabled={!canEdit||busy}><div className="grid form-grid">
         <div className="field field-wide"><label htmlFor="visit-unit">UNIDADE</label><select id="visit-unit" name="unit_id" required value={chosenUnit} onChange={event=>setChosenUnit(event.target.value)}>{units.filter(unit=>unit.active||unit.id===visit?.unit_id).map(unit=><option key={unit.id} value={unit.id}>{unit.code}{showCompany?` · ${unit.company_name}`:''}{!unit.active?' (inativa)':''}</option>)}</select><small className="muted">Responsável técnico: {units.find(unit=>unit.id===chosenUnit)?.responsible_name||'Sem responsável vinculado'}</small></div>
         <div className="field field-wide"><label htmlFor="visit-date">DATA</label><input type="date" id="visit-date" name="visit_date" required defaultValue={selection.date}/></div>
-        <div className="field"><label htmlFor="visit-start">INÍCIO</label><input type="time" id="visit-start" name="start_time" required defaultValue={visit?.start_time||start}/></div>
-        <div className="field"><label htmlFor="visit-end">TÉRMINO</label><input type="time" id="visit-end" name="end_time" required defaultValue={visit?.end_time||end}/></div>
+        <div className="field"><label htmlFor="visit-start">INÍCIO</label><input type="time" id="visit-start" name="start_time" required defaultValue={initial?.start_time||start}/></div>
+        <div className="field"><label htmlFor="visit-end">TÉRMINO</label><input type="time" id="visit-end" name="end_time" required defaultValue={initial?.end_time||end}/></div>
         {!visit&&<div className="field field-wide"><label className="check-option"><input type="checkbox" checked={repeat} onChange={event=>setRepeat(event.target.checked)}/>Repetir semanalmente no mesmo dia e horário</label>{repeat&&<><label htmlFor="visit-until">REPETIR ATÉ</label><input type="date" name="repeat_until" id="visit-until" required min={selection.date} defaultValue={`${selection.date.slice(0,4)}-12-31`}/><small className="muted">Programa as visitas até a data escolhida, por até um ano.</small></>}</div>}
-        <div className="field field-wide"><label htmlFor="visit-notes">OBSERVAÇÕES</label><textarea id="visit-notes" name="notes" rows={3} maxLength={2000} defaultValue={visit?.notes||''}/></div>
+        {!visit&&<div className="field field-wide"><span>DATAS ADICIONAIS</span><small className="muted">Repita esta visita em outras datas, com a mesma unidade e horários.</small>{additionalDates.map((date,index)=><div className="header-actions" key={date}><input type="date" name="additional_dates" required aria-label={`Data adicional ${index+1}`}/><button type="button" className="btn btn-ghost" aria-label={`Remover data adicional ${index+1}`} onClick={()=>setAdditionalDates(dates=>dates.filter((_,i)=>i!==index))}>Remover</button></div>)}<button type="button" className="btn btn-soft" disabled={additionalDates.length>=52} onClick={()=>setAdditionalDates(dates=>[...dates,String(Number(dates.at(-1)??-1)+1)])}>Adicionar data</button></div>}
+        <div className="field field-wide"><label htmlFor="visit-notes">OBSERVAÇÕES</label><textarea id="visit-notes" name="notes" rows={3} maxLength={2000} defaultValue={initial?.notes||''}/></div>
       </div></fieldset>
-      {visit?.series_id&&<p className="muted">Esta visita faz parte de uma programação semanal. Alterações ou cancelamento se aplicam apenas a esta ocorrência.</p>}
+      {visit?.series_id&&<p className="muted">Esta visita faz parte de uma programação com várias datas. Alterações ou cancelamento se aplicam apenas a esta ocorrência.</p>}
       {!canEdit&&<p className="notice">Somente o coordenador pode alterar a programação.</p>}
       {visit&&<p><Link className="btn btn-soft" href={`/relatorios/novo?unidade=${visit.unit_id}&data=${visit.visit_date}`}>{canEdit?'Preparar relatório da visita':'Preencher relatório da visita'}</Link></p>}
-      <div className="visit-dialog-actions"><button type="button" className="btn btn-ghost" onClick={close} disabled={busy}>Fechar</button>{canEdit&&<button className="btn btn-primary" disabled={busy}>{busy?'Salvando…':visit?'Salvar alterações':'Criar visitas'}</button>}</div>
+      <div className="visit-dialog-actions"><button type="button" className="btn btn-ghost" onClick={close} disabled={busy}>Fechar</button>{canEdit&&visit&&<button type="button" className="btn btn-soft" disabled={busy} onClick={duplicate}>Duplicar visita</button>}{canEdit&&<button className="btn btn-primary" disabled={busy}>{busy?'Salvando…':visit?'Salvar alterações':'Criar visitas'}</button>}</div>
     </form>
     {canEdit&&visit&&<div className="visit-cancel">{cancel?<><p>Cancelar esta visita? O histórico será preservado.</p><button type="button" className="btn btn-ghost" disabled={busy} onClick={()=>setCancel(false)}>Manter visita</button><button type="button" className="btn btn-danger" disabled={busy} onClick={()=>void send('cancel')}>Confirmar cancelamento</button></>:<button type="button" className="btn btn-danger" disabled={busy} onClick={()=>setCancel(true)}>Cancelar visita</button>}</div>}
   </dialog>;

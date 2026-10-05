@@ -106,6 +106,13 @@ try{
   assert.equal((await request('/api/monthly-reports?mes='+month)).status,401);
   assert.equal((await review('')).status,401);
   const coordinatorCookie=await login(coordinator),technicianCookie=await login(technician);
+  const rtFilters={month,unit:'',responsible:otherTechnicianId},rtData=monthlyExecutive(coordinator,rtFilters);
+  assert.equal(rtData.reportCount,1);assert.deepEqual(rtData.units.map(row=>row.id),[secondUnit]);assert.equal(rtData.responsibleName,'Outro responsável de teste');
+  assert.throws(()=>monthlyExecutive(technician,rtFilters));
+  assert.equal((await request(`/api/monthly-reports?mes=${month}&responsavel=${coordinatorId}`,coordinatorCookie)).status,404);
+  assert.equal((await request(`/api/monthly-reports?mes=${month}&responsavel=${otherTechnicianId}`,technicianCookie)).status,404);
+  const rtPdf=await request(`/api/monthly-reports?mes=${month}&responsavel=${otherTechnicianId}`,coordinatorCookie);assert.equal(rtPdf.status,200);
+  fs.writeFileSync('tmp/executive-rt-test.pdf',Buffer.from(await rtPdf.arrayBuffer()));
   assert.equal((await review(technicianCookie)).status,403);
   assert.equal((await review(coordinatorCookie,{},'https://outro-site.test')).status,403);
   assert.equal((await review(coordinatorCookie,{unidade:foreignUnit})).status,404);
@@ -120,6 +127,10 @@ try{
   assert.ok(reviewedText.length>1000&&reviewedText.length<=1800,'Exercise pagination with a full realistic coordinator opinion.');
   const saved=await review(coordinatorCookie,{text:reviewedText});assert.equal(saved.status,303);assert.ok(saved.headers.get('location')!.includes('ok=1'));
   const savedData=monthlyExecutive(coordinator,filters);assert.equal(savedData.review!.text,reviewedText);assert.equal(savedData.review!.current,true);
+  assert.equal(monthlyExecutive(coordinator,rtFilters).review,null);
+  const rtReview=await review(coordinatorCookie,{responsavel:otherTechnicianId,source_hash:monthlyExecutive(coordinator,rtFilters).sourceHash,text:'Parecer exclusivo das unidades deste responsável técnico.'});
+  assert.equal(rtReview.status,303);assert.ok(rtReview.headers.get('location')!.includes('responsavel='+otherTechnicianId));
+  assert.equal(monthlyExecutive(coordinator,rtFilters).review!.current,true);assert.equal(monthlyExecutive(coordinator,filters).review!.text,reviewedText);
   const legacyReturn=await review(coordinatorCookie,{text:reviewedText,return_to:'dashboard'});assert.equal(legacyReturn.status,303);assert.ok(legacyReturn.headers.get('location')!.includes('/relatorios-mensais?'));
   assert.equal((await request(`/api/monthly-reports?mes=${month}&unidade=${foreignUnit}`,coordinatorCookie)).status,404);
   assert.equal((await request(`/api/monthly-reports?mes=${month}&unidade=${secondUnit}`,technicianCookie)).status,404);

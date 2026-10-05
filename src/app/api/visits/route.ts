@@ -6,7 +6,7 @@ import {uid} from '@/lib/utils';
 import {publicOrigin} from '@/lib/http';
 import {validDate,weeklyDates} from '@/lib/calendar';
 
-const schema=z.object({intent:z.enum(['create','update','cancel']),id:z.string().optional(),unit_id:z.string().min(1).optional(),visit_date:z.string().refine(validDate).optional(),start_time:z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).optional(),end_time:z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).optional(),notes:z.string().trim().max(2000).default(''),repeat_until:z.string().refine(validDate).optional()});
+const schema=z.object({intent:z.enum(['create','update','cancel']),id:z.string().optional(),unit_id:z.string().min(1).optional(),visit_date:z.string().refine(validDate).optional(),start_time:z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).optional(),end_time:z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).optional(),notes:z.string().trim().max(2000).default(''),repeat_until:z.string().refine(validDate).optional(),additional_dates:z.array(z.string().refine(validDate)).max(52).default([])});
 type Existing={id:string;company_id:string;unit_id:string;status:string};
 export async function POST(req:Request){
   const actor=await currentUser();
@@ -30,8 +30,9 @@ export async function POST(req:Request){
   const unit=db.prepare('SELECT u.id,u.company_id FROM units u JOIN companies c ON c.id=u.company_id WHERE u.id=? AND u.active=1 AND c.active=1').get(data.unit_id) as {id:string;company_id:string}|undefined;
   if(!unit||actor.role!=='SUPER_ADMIN'&&unit.company_id!==actor.company_id)return NextResponse.json({error:'Unidade inválida.'},{status:403});
   if(old&&unit.company_id!==old.company_id)return NextResponse.json({error:'A visita deve permanecer na mesma empresa.'},{status:400});
-  if(data.intent==='update'&&data.repeat_until)return NextResponse.json({error:'A edição altera apenas esta ocorrência.'},{status:400});
+  if(data.intent==='update'&&(data.repeat_until||data.additional_dates.length))return NextResponse.json({error:'A edição altera apenas esta ocorrência.'},{status:400});
   let dates=[data.visit_date];try{if(data.repeat_until)dates=weeklyDates(data.visit_date,data.repeat_until);}catch(error){return NextResponse.json({error:(error as Error).message},{status:400});}
+  dates=[...new Set([...dates,...data.additional_dates])].sort();
   const seriesId=dates.length>1?uid('series'):null;
   const ids:string[]=[];
   db.exec('BEGIN IMMEDIATE');try{

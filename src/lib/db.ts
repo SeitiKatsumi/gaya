@@ -34,6 +34,8 @@ export function migrate() {
   CREATE TABLE IF NOT EXISTS monthly_reviews (scope_key TEXT NOT NULL, month TEXT NOT NULL, company_id TEXT REFERENCES companies(id), text TEXT NOT NULL, source_hash TEXT NOT NULL, reviewed_by TEXT NOT NULL REFERENCES users(id), reviewed_at TEXT NOT NULL, PRIMARY KEY(scope_key,month));
   CREATE INDEX IF NOT EXISTS idx_inspections_company ON inspections(company_id, status); CREATE INDEX IF NOT EXISTS idx_projects_company ON projects(company_id, status); CREATE INDEX IF NOT EXISTS idx_responses_inspection ON responses(inspection_id, item_id, is_current); CREATE INDEX IF NOT EXISTS idx_audit_inspection ON audit_logs(inspection_id, created_at); CREATE INDEX IF NOT EXISTS idx_evidences_inspection ON evidences(inspection_id, item_id);
   `);
+  const companyColumns=db.prepare('PRAGMA table_info(companies)').all() as {name:string}[];
+  if(!companyColumns.some(column=>column.name==='report_recipients'))db.exec("ALTER TABLE companies ADD COLUMN report_recipients TEXT NOT NULL DEFAULT ''");
   const unitColumns=db.prepare('PRAGMA table_info(units)').all() as {name:string}[];
   if(!unitColumns.some(column=>column.name==='responsible_id'))db.exec('ALTER TABLE units ADD COLUMN responsible_id TEXT REFERENCES users(id)');
   for(const field of ['maps_url','contact_name','contact_email','contact_phones','form_url']){

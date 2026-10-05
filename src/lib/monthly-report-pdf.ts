@@ -14,7 +14,8 @@ export async function createMonthlyReportPdf(data:ExecutiveMonthly):Promise<Buff
   const done=new Promise<Buffer>((resolve,reject)=>{doc.on('data',(chunk:Buffer)=>chunks.push(chunk));doc.on('end',()=>resolve(Buffer.concat(chunks)));doc.on('error',reject);});
   const month=dayLabel(data.filters.month+'-01',{month:'long',year:'numeric'});
   const selected=data.filters.unit?data.units.find(unit=>unit.id===data.filters.unit):null;
-  const scope=selected?`${selected.code} - ${selected.name}`:data.filters.unit?'Unidade selecionada':'Todas as unidades disponíveis';
+  const unitScope=selected?`${selected.code} - ${selected.name}`:data.filters.unit?'Unidade selecionada':'Todas as unidades disponíveis';
+  const scope=unitScope+(data.responsibleName?` | RT: ${data.responsibleName}`:'');
   function text(value:string,x:number,y:number,width=WIDTH,size=9,bold=false,color=C.ink,align:'left'|'right'|'center'='left'){
     doc.font(bold?'Helvetica-Bold':'Helvetica').fontSize(size).fillColor(color).text(safePdfText(value),x,y,{width,align,lineGap:2});
     return doc.y;

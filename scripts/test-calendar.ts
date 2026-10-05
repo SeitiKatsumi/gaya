@@ -29,6 +29,11 @@ try{
   assert.equal((await post({...input,visit_date:'2026-02-30'},coordinator)).status,400);
   assert.equal((await post({...input,end_time:'07:00'},coordinator)).status,400);
   assert.equal((await post({...input,repeat_until:'2027-10-07'},coordinator)).status,400);
+  const multiple=await post({...input,visit_date:'2026-09-28',additional_dates:['2026-09-28','2026-09-29','2026-09-30','2026-09-30']},coordinator);
+  assert.equal(multiple.status,200);assert.equal(multiple.data.count,3);
+  assert.equal((await post({...input,additional_dates:['2026-02-30']},coordinator)).status,400);
+  assert.equal((await post({...input,additional_dates:Array(53).fill('2026-09-28')},coordinator)).status,400);
+  assert.equal((await post({...input,intent:'update',id:multiple.data.ids[0],additional_dates:['2026-09-29']},coordinator)).status,400);
   const created=await post({...input,repeat_until:'2026-12-31'},coordinator);assert.equal(created.status,200);assert.equal(created.data.count,13);
   const id=created.data.ids[0] as string;
   const other=await post({...input,unit_id:secondUnit,notes:'Outra unidade'},coordinator);assert.equal(other.status,200);

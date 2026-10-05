@@ -12,7 +12,7 @@ const inspections:string[]=[];
 async function request(route:string,cookie='',body?:Record<string,string>,origin?:string){return fetch(base+route,{redirect:'manual',headers:{...(cookie?{cookie}:{}),...(origin?{origin}:{})},...(body?{method:'POST',body:new URLSearchParams(body)}:{})});}
 async function login(id:string){const response=await request('/api/auth/login','',{email:id+'@test.local',password});assert.equal(response.status,303);return response.headers.get('set-cookie')!.split(';')[0];}
 function inspection(suffix:string,status:string,targetUnit=unit,targetCompany=company){const id=tag+'-'+suffix;inspections.push(id);db.prepare('INSERT INTO inspections(id,company_id,unit_id,template_id,control_code,title,status,inspector_id,planned_start,received_at,template_snapshot) VALUES(?,?,?,?,?,?,?,?,?,?,?)').run(id,targetCompany,targetUnit,template,'RT/área-'+id,id,status,targetCompany===company?techId:null,saoPauloToday(),new Date().toISOString(),JSON.stringify({items:db.prepare('SELECT * FROM template_items WHERE template_id=?').all(template)}));db.prepare('INSERT INTO responses(id,inspection_id,item_id,user_id,answer,compliance,comment,details_json) VALUES(?,?,?,?,?,?,?,?)').run(tag+'-response-'+suffix,id,item,techId,'Sim','COMPLIANT','Conteúdo aprovado preservado','{}');if(status==='APPROVED')db.prepare("INSERT INTO report_section_reviews(inspection_id,section,status,reviewed_by) VALUES(?,'Área','APPROVED',?)").run(id,coordId);return id;}
-const body={sent_at:saoPauloToday(),recipient:'matriz@example.test',confirmation:'sent'};
+const body={sent_at:saoPauloToday(),recipient:'matriz@example.test, qualidade@example.test',confirmation:'sent'};
 try{
   for(const id of [company,foreign])db.prepare('INSERT INTO companies(id,legal_name,trade_name) VALUES(?,?,?)').run(id,id,id);
   for(const [id,role,target] of [[coordId,'SUPERVISOR',company],[techId,'INSPECTOR',company],[otherTech,'INSPECTOR',company],[foreignCoord,'SUPERVISOR',foreign]])db.prepare('INSERT INTO users(id,company_id,name,email,password_hash,role) VALUES(?,?,?,?,?,?)').run(id,target,id,id+'@test.local',bcrypt.hashSync(password,4),role);
@@ -20,11 +20,21 @@ try{
   db.prepare("INSERT INTO templates(id,company_id,name,status) VALUES(?,?,?,'PUBLISHED')").run(template,company,template);db.prepare("INSERT INTO template_items(id,template_id,code,title,area,response_type,expected_answer,sort_order) VALUES(?,?,?,'Item técnico','Área','YES_NO','Sim',1)").run(item,template,'CHECK');
   const approved=inspection('approved','APPROVED'),draft=inspection('draft','IN_PROGRESS'),foreignApproved=inspection('foreign-approved','APPROVED',foreignUnit,foreign),coord=await login(coordId),tech=await login(techId),unassigned=await login(otherTech),outsider=await login(foreignCoord);
   const route=`/api/received-reports/${approved}/send`;
+  const defaults={company_id:company,recipients:body.recipient};
+  assert.equal((await request('/api/report-recipients','',defaults)).status,401);
+  assert.equal((await request('/api/report-recipients',tech,defaults)).status,403);
+  assert.equal((await request('/api/report-recipients',outsider,defaults)).status,404);
+  assert.equal((await request('/api/report-recipients',coord,defaults,'https://foreign.example.test')).status,403);
+  assert.equal((await request('/api/report-recipients',coord,{...defaults,recipients:'one@example.test, two@example.test, three@example.test'})).status,400);
+  assert.equal((await request('/api/report-recipients',coord,{...defaults,recipients:'invalid'})).status,400);
+  assert.equal((await request('/api/report-recipients',coord,defaults)).status,303);
+  assert.equal(db.prepare('SELECT report_recipients FROM companies WHERE id=?').get(company)!.report_recipients,body.recipient);
   assert.equal((await request(route,'',body)).status,401);assert.equal((await request(route,tech,body)).status,403);assert.equal((await request(route,outsider,body)).status,404);assert.equal((await request(`/api/received-reports/${foreignApproved}/send`,coord,body)).status,404);
   assert.equal((await request(`/api/received-reports/${draft}/send`,coord,body)).status,409);assert.equal((await request(route,coord,body,'https://foreign.example.test')).status,403);
   assert.equal((await request(route,coord,{...body,sent_at:addDays(saoPauloToday(),1)})).status,400);assert.equal((await request(route,coord,{...body,sent_at:'2026-02-30'})).status,400);assert.equal((await request(route,coord,{...body,recipient:'invalid'})).status,400);assert.equal((await request(route,coord,{...body,confirmation:'no'})).status,400);
   db.prepare("UPDATE report_section_reviews SET status='PENDING' WHERE inspection_id=?").run(approved);assert.equal((await request(route,coord,body)).status,409);db.prepare("UPDATE report_section_reviews SET status='APPROVED' WHERE inspection_id=?").run(approved);
   const deliveryPage=await (await request(`/relatorios/${approved}/envio`,coord)).text();assert.ok(deliveryPage.includes('Ele não dispara emails'));assert.ok(deliveryPage.includes('Já enviei o PDF aprovado ao cliente'));
+  assert.ok(deliveryPage.includes('value="'+body.recipient+'"'));
   assert.equal((await request(route,coord,body)).status,303);const sent=db.prepare("SELECT * FROM reports WHERE inspection_id=? AND status='SENT'").get(approved)!;assert.equal(sent.delivery_method,'MANUAL');assert.equal(sent.recipient,body.recipient);assert.equal(sent.sent_at,body.sent_at);assert.equal(sent.generated_by,coordId);assert.equal(db.prepare('SELECT status FROM inspections WHERE id=?').get(approved)!.status,'APPROVED');
   assert.equal(db.prepare("SELECT count(*) n FROM audit_logs WHERE inspection_id=? AND action='REPORT_SENT_EXTERNALLY'").get(approved)!.n,1);
   const root=reportStorage(),stored=path.resolve(String(sent.path));assert.ok(stored.startsWith(root+path.sep));const snapshot=fs.readFileSync(stored);assert.equal(snapshot.subarray(0,5).toString(),'%PDF-');

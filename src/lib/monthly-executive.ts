@@ -3,13 +3,13 @@ import type {SessionUser} from './auth.ts';
 import {db} from './db.ts';
 import {inspectionTemplateItems} from './inspection-template.ts';
 import {applicableItems} from './received-reports.ts';
-import {availableStatisticsUnit,reportRows,statisticsUnits,trackedPlans,validMonth,type ReportFilters,type StatisticsUnit} from './report-statistics.ts';
+import {availableStatisticsUnit,reportRows,statisticsUnits,statisticsResponsibles,trackedPlans,validMonth,type ReportFilters,type StatisticsUnit} from './report-statistics.ts';
 
 export type ExecutiveMetrics={igc:number|null;weightedCompliant:number;weightedEvaluated:number;answered:number;applicable:number;nonconformities:number;sectorsPending:number;sectorsTotal:number;sectorPercent:number|null;documentsPending:number;documentsEvaluated:number;documentPercent:number|null;plans:number;resolutions:number;reincidence:number|null};
 export type ExecutiveUnit=StatisticsUnit&{metrics:ExecutiveMetrics;previousIgc:number|null;delta:number|null;reportCount:number};
 export type ParetoCause={label:string;count:number;share:number;cumulativePercent:number};
 export type MonthlyReview={text:string;reviewed_by:string;reviewed_at:string;current:boolean};
-export type ExecutiveMonthly={filters:ReportFilters;previousMonth:string;reportCount:number;pendingReportCount:number;units:ExecutiveUnit[];metrics:ExecutiveMetrics;pareto:ParetoCause[];paretoTotal:number;automaticConclusion:string;review:MonthlyReview|null;sourceHash:string};
+export type ExecutiveMonthly={filters:ReportFilters;responsibleName?:string;previousMonth:string;reportCount:number;pendingReportCount:number;units:ExecutiveUnit[];metrics:ExecutiveMetrics;pareto:ParetoCause[];paretoTotal:number;automaticConclusion:string;review:MonthlyReview|null;sourceHash:string};
 
 export const percentLabel=(value:number|null)=>value===null?'Sem dados':`${value.toLocaleString('pt-BR',{maximumFractionDigits:1})}%`;
 const percentage=(numerator:number,denominator:number)=>denominator?numerator/denominator*100:null;
@@ -19,7 +19,7 @@ function ratios(metrics:ExecutiveMetrics){metrics.igc=percentage(metrics.weighte
 
 function executivePeriod(user:SessionUser,filters:ReportFilters){
   const raw=reportRows(user,filters),approved=raw.reports.filter(report=>report.status==='APPROVED');
-  const units=statisticsUnits(user).filter(unit=>!filters.unit||unit.id===filters.unit).map(unit=>({...unit,metrics:emptyMetrics(),reportCount:0}));
+  const units=statisticsUnits(user,filters.responsible).filter(unit=>!filters.unit||unit.id===filters.unit).map(unit=>({...unit,metrics:emptyMetrics(),reportCount:0}));
   const sets=new Map(units.map(unit=>[unit.id,{applicable:new Set<string>(),answered:new Set<string>(),sectors:new Set<string>(),pending:new Set<string>(),documents:new Map<string,string>()}]));
   const byUnit=new Map(units.map(unit=>[unit.id,unit])),causes=new Map<string,number>();
   for(const report of approved){
@@ -57,7 +57,7 @@ function executivePeriod(user:SessionUser,filters:ReportFilters){
   const pareto=[...causes].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0],'pt-BR')).slice(0,8).map(([label,count])=>{cumulative+=count;return {label,count,share:count/total*100,cumulativePercent:cumulative/total*100};});
   return {units,metrics:ratios(metrics),pareto,paretoTotal:total,reportCount:approved.length,pendingReportCount:raw.reports.length-approved.length,raw,plans};
 }
-function scopeKey(user:SessionUser,filters:ReportFilters){return JSON.stringify([user.role==='SUPER_ADMIN'?null:user.company_id,filters.unit]);}
+function scopeKey(user:SessionUser,filters:ReportFilters){return JSON.stringify([user.role==='SUPER_ADMIN'?null:user.company_id,filters.unit,...(filters.responsible?[filters.responsible]:[])]);}
 function automaticConclusion(data:Pick<ExecutiveMonthly,'metrics'|'units'|'pareto'|'reportCount'|'pendingReportCount'>){
   if(!data.reportCount)return 'Não há relatórios aprovados para as visitas deste mês. Não é possível emitir um parecer de conformidade com a base disponível. A coordenação deve revisar os relatórios recebidos e completar as visitas previstas.';
   const {metrics:m}=data;
@@ -81,7 +81,7 @@ export function monthlyExecutive(user:SessionUser,filters:ReportFilters):Executi
   // A company-wide opinion can mention other units. RTs see it only when their complete authorized data matches.
   const review=stored&&(user.role!=='INSPECTOR'||stored.source_hash===sourceHash)?{text:stored.text,reviewed_by:stored.reviewed_by,reviewed_at:stored.reviewed_at,current:stored.source_hash===sourceHash}:null;
   const data={filters,previousMonth,units,metrics:period.metrics,pareto:period.pareto,paretoTotal:period.paretoTotal,reportCount:period.reportCount,pendingReportCount:period.pendingReportCount,sourceHash,review};
-  return {...data,automaticConclusion:automaticConclusion(data)};
+  return {...data,responsibleName:filters.responsible?statisticsResponsibles(user).find(row=>row.id===filters.responsible)?.name:undefined,automaticConclusion:automaticConclusion(data)};
 }
 export function saveMonthlyReview(user:SessionUser,filters:ReportFilters,text:string,sourceHash:string){
   if(user.role==='INSPECTOR')throw new Error('Sem permissão.');
